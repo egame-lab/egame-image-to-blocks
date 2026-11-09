@@ -4,7 +4,6 @@
   const $ = id => document.getElementById(id);
   const guide = $('transferGuide');
   const dialog = guide.querySelector('.transfer-dialog');
-  const guideScroll = guide.querySelector('.transfer-dialog-inner');
   const status = $('transferStatus');
   const tabs = Array.from(guide.querySelectorAll('[data-transfer-method]'));
   const panels = Array.from(guide.querySelectorAll('[data-transfer-panel]'));
@@ -14,7 +13,6 @@
   const copyConsoleButton = $('transferCopyConsole');
   const copyBookmarkButton = $('transferCopyBookmark');
   let previousFocus = null;
-  let guidePageScroll = null;
   let view = 'tools';
 
   function currentXml() {
@@ -46,39 +44,23 @@
       '請先在網站完成「預覽積木效果」，再複製積木碼或匯入指令。');
   }
   function openGuide() {
-    if (!guide.hidden) return;
     previousFocus = document.activeElement;
-    // 固定整個背景頁面，避免 iOS 把指南頂端的越界拖動傳到主頁面。
-    guidePageScroll = { x: Math.max(0, window.scrollX), y: Math.max(0, window.scrollY) };
-    document.body.style.setProperty('--transfer-guide-offset', `${-guidePageScroll.y}px`);
-    document.documentElement.classList.add('transfer-guide-active');
-    document.body.classList.add('transfer-guide-open');
     guide.hidden = false;
-    guideScroll.scrollTop = 0;
+    document.body.classList.add('transfer-guide-open');
     switchMethod('tools', false);
-    $('transferClose').focus({ preventScroll: true });
+    $('transferClose').focus();
   }
   function closeGuide() {
-    if (guide.hidden) return;
     guide.hidden = true;
     document.body.classList.remove('transfer-guide-open');
-    document.documentElement.classList.remove('transfer-guide-active');
-    document.body.style.removeProperty('--transfer-guide-offset');
-    if (guidePageScroll) {
-      // CSS 原本有 scroll-behavior: smooth，恢復原位置時必須暫停動畫。
-      const behavior = document.documentElement.style.scrollBehavior;
-      document.documentElement.style.scrollBehavior = 'auto';
-      window.scrollTo(guidePageScroll.x, guidePageScroll.y);
-      requestAnimationFrame(() => { document.documentElement.style.scrollBehavior = behavior; });
-      guidePageScroll = null;
-    }
-    if (previousFocus && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+    if (previousFocus && previousFocus.isConnected) previousFocus.focus();
   }
   document.querySelectorAll('[data-open-transfer]').forEach(button => button.addEventListener('click', openGuide));
   $('transferClose').addEventListener('click', closeGuide);
   guide.addEventListener('mousedown', e => { if (e.target === guide) closeGuide(); });
-  // 擋掉背景、固定標題及內容捲動邊界的越界拖動。
-  // 注意：只有內文是 scroll container，不能阻止內文正常捲動。
+  // iOS WebKit can rubber-band a dialog even with overscroll-behavior: contain.
+  // Block only touch gestures that would go past the top/bottom of the guide;
+  // ordinary scrolling inside the dialog and two-finger gestures stay enabled.
   let touchY = null;
   guide.addEventListener('touchstart', event => {
     touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
@@ -91,11 +73,11 @@
     const deltaY = nextY - touchY;
     touchY = nextY;
     if (!deltaY || !event.cancelable) return;
-    const outsideScroll = !guideScroll.contains(event.target);
-    const atTop = guideScroll.scrollTop <= 1;
-    const atBottom = guideScroll.scrollTop + guideScroll.clientHeight >= guideScroll.scrollHeight - 1;
-    const noScroll = guideScroll.scrollHeight <= guideScroll.clientHeight + 1;
-    if (outsideScroll || noScroll || (deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
+    const outsideDialog = !dialog.contains(event.target);
+    const atTop = dialog.scrollTop <= 1;
+    const atBottom = dialog.scrollTop + dialog.clientHeight >= dialog.scrollHeight - 1;
+    const noScroll = dialog.scrollHeight <= dialog.clientHeight + 1;
+    if (outsideDialog || noScroll || (deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
       event.preventDefault();
     }
   }, {passive: false});
