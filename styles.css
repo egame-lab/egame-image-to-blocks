@@ -1075,12 +1075,14 @@ body[data-stage="done"] .quest-item .gem b::after { font-size: 15px; color: #e1f
 }
 .transfer-backdrop[hidden] { display: none !important; }
 .transfer-dialog {
-    width: min(760px, 100%); max-height: min(88dvh, 900px); overflow-y: auto; overscroll-behavior: contain;
+    width: min(760px, 100%); max-height: min(88dvh, 900px);
+    display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
     border: 2px solid #bd9254; border-radius: 8px;
     background: #eee0bf; color: var(--ink);
     box-shadow: inset 0 0 0 4px rgba(255,246,214,.7), 0 22px 70px rgba(0,0,0,.6);
 }
 .transfer-dialog-head {
+    flex: 0 0 auto;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 17px 23px; background: linear-gradient(180deg,#633b22,#412613); color: #fff0cb;
     border-bottom: 2px solid #bb8e53;
@@ -1092,7 +1094,11 @@ body[data-stage="done"] .quest-item .gem b::after { font-size: 15px; color: #e1f
     background: rgba(0,0,0,.15); color: #fff1cd; font: 400 27px/1 var(--sans); cursor: pointer;
 }
 .transfer-close:hover { background: rgba(255,255,255,.12); }
-.transfer-dialog-inner { padding: 20px 24px 24px; }
+.transfer-dialog-inner {
+    flex: 0 1 auto; min-height: 0; padding: 20px 24px 24px;
+    overflow-y: auto; overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+}
 .transfer-intro { margin: 0 0 16px; font-size: 14px; color: #63462f; }
 .transfer-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
 .transfer-method {
@@ -1332,7 +1338,11 @@ select:not([multiple]) {
     }
 }
 
-/* v0.10.15: Guide panel still scrolls normally; constrain edge overscroll.
-   iOS WebKit also needs the targeted non-passive touchmove guard in transfer-guide.js. */
+/* iOS 指南捲動：鎖住背後的頁面，標題固定、只有內容可以捲動。
+   原本只設定 overscroll-behavior 無法阻止所有 iOS WebKit 背景彈動。 */
+html.transfer-guide-active { overflow: hidden; overscroll-behavior: none; }
+body.transfer-guide-open {
+    position: fixed; top: var(--transfer-guide-offset, 0px);
+    left: 0; right: 0; width: 100%; overflow: hidden;
+}
 .transfer-backdrop { overscroll-behavior: none; }
-.transfer-dialog { -webkit-overflow-scrolling: touch; }
