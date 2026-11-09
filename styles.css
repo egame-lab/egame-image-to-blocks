@@ -1331,3 +1331,8 @@ select:not([multiple]) {
         height: min(100svh, 800px);
     }
 }
+
+/* v0.10.15: Guide panel still scrolls normally; constrain edge overscroll.
+   iOS WebKit also needs the targeted non-passive touchmove guard in transfer-guide.js. */
+.transfer-backdrop { overscroll-behavior: none; }
+.transfer-dialog { -webkit-overflow-scrolling: touch; }

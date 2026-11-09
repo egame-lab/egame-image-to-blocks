@@ -58,6 +58,29 @@
   document.querySelectorAll('[data-open-transfer]').forEach(button => button.addEventListener('click', openGuide));
   $('transferClose').addEventListener('click', closeGuide);
   guide.addEventListener('mousedown', e => { if (e.target === guide) closeGuide(); });
+  // iOS WebKit can rubber-band a dialog even with overscroll-behavior: contain.
+  // Block only touch gestures that would go past the top/bottom of the guide;
+  // ordinary scrolling inside the dialog and two-finger gestures stay enabled.
+  let touchY = null;
+  guide.addEventListener('touchstart', event => {
+    touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
+  }, {passive: true});
+  guide.addEventListener('touchend', () => { touchY = null; }, {passive: true});
+  guide.addEventListener('touchcancel', () => { touchY = null; }, {passive: true});
+  guide.addEventListener('touchmove', event => {
+    if (guide.hidden || event.touches.length !== 1 || touchY === null) return;
+    const nextY = event.touches[0].clientY;
+    const deltaY = nextY - touchY;
+    touchY = nextY;
+    if (!deltaY || !event.cancelable) return;
+    const outsideDialog = !dialog.contains(event.target);
+    const atTop = dialog.scrollTop <= 1;
+    const atBottom = dialog.scrollTop + dialog.clientHeight >= dialog.scrollHeight - 1;
+    const noScroll = dialog.scrollHeight <= dialog.clientHeight + 1;
+    if (outsideDialog || noScroll || (deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
+      event.preventDefault();
+    }
+  }, {passive: false});
   guide.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); closeGuide(); return; }
     if (e.key === 'Tab') {
