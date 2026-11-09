@@ -1346,3 +1346,11 @@ body.transfer-guide-open {
     left: 0; right: 0; width: 100%; overflow: hidden;
 }
 .transfer-backdrop { overscroll-behavior: none; }
+
+
+/* iOS 指南慣性捲動補強：iPhone/iPad 改用受限的手指拖動。
+   只套用在指南內文，不影響主頁、電腦與 Android；放手後立即停止。 */
+.transfer-guide-ios-manual-scroll .transfer-dialog-inner {
+    touch-action: none;
+    -webkit-overflow-scrolling: auto;
+}

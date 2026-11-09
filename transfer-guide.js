@@ -99,6 +99,37 @@
       event.preventDefault();
     }
   }, {passive: false});
+  // iOS WebKit 的慣性捲動在 touchend 後仍繼續，不能再靠 touchmove 阻止越界。
+  // 只在 iPhone / iPad 的指南內文接管垂直拖動，將捲動限制在 0..最大值；
+  // 不使用原生慣性，因此不會在放手後把指南推過頂端或底端。
+  // 電腦、Android 保持原本的原生捲動方式。
+  const isIOSGuide = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOSGuide) {
+    guide.classList.add('transfer-guide-ios-manual-scroll');
+    let drag = null;
+    guideScroll.addEventListener('touchstart', event => {
+      drag = event.touches.length === 1
+        ? { x: event.touches[0].clientX, y: event.touches[0].clientY }
+        : null;
+    }, { passive: true });
+    guideScroll.addEventListener('touchmove', event => {
+      if (guide.hidden || !drag || event.touches.length !== 1) return;
+      const finger = event.touches[0];
+      const dx = finger.clientX - drag.x;
+      const dy = finger.clientY - drag.y;
+      // 橫向滑動（例如系統輔助操作）不由垂直捲動器處理。
+      if (Math.abs(dy) >= Math.abs(dx) && event.cancelable) {
+        event.preventDefault();
+        const max = Math.max(0, guideScroll.scrollHeight - guideScroll.clientHeight);
+        guideScroll.scrollTop = Math.min(max, Math.max(0, guideScroll.scrollTop - dy));
+      }
+      drag = { x: finger.clientX, y: finger.clientY };
+    }, { passive: false });
+    const clearDrag = () => { drag = null; };
+    guideScroll.addEventListener('touchend', clearDrag, { passive: true });
+    guideScroll.addEventListener('touchcancel', clearDrag, { passive: true });
+  }
   guide.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); closeGuide(); return; }
     if (e.key === 'Tab') {
