@@ -76,7 +76,14 @@
 
   // 內容有變動時重新判斷（貼圖、替換、繪圖、復原／重做）
   window.addEventListener('egame:content-change', scheduleStage);
-  document.addEventListener('pointerup', scheduleStage, true);
+  // 在手機一般捲動區放開手指，不代表畫布內容發生變化。
+  // 避免每次滑動都建立一份畫布合成預覽，造成短暫停頓。
+  document.addEventListener('pointerup', event => {
+    const target = event.target;
+    if (event.pointerType === 'touch' && target instanceof Element &&
+        !target.closest('button, input, select, textarea, label, #editorViewport, #quickDropZone, .editor-layers-list')) return;
+    scheduleStage();
+  }, true);
   document.addEventListener('keyup', scheduleStage, true);
   document.getElementById('quickDropZone').addEventListener('drop', () => setTimeout(updateStage, 300));
 

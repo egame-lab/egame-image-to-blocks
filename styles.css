@@ -1314,3 +1314,20 @@ select:not([multiple]) {
 @media (max-width: 700px), (pointer: coarse) {
     .mobile-canvas-scroll-tip, .bookmark-mobile-guide { display: block; }
 }
+
+
+/* v0.10.10 — 手機網址列收合不應改變畫布高度或觸發整頁重排。
+   svh 是瀏覽器工具列展開時的穩定視窗高度，不會隨其收合反覆變動。 */
+@media (max-width: 700px), (pointer: coarse) {
+    body { min-height: 100svh; }
+    .editor-workspace {
+        height: 400px; /* 不支援 svh 的舊版瀏覽器使用固定高度 */
+        height: clamp(340px, 58svh, 560px);
+    }
+    /* 背景跟隨文件而不是釘在手機視窗，減少捲動合成重繪。 */
+    .arcana, .torchlight {
+        position: absolute; top: 0; left: 0; right: 0; bottom: auto;
+        height: 800px;
+        height: min(100svh, 800px);
+    }
+}

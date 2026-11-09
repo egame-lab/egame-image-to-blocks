@@ -115,7 +115,14 @@
 
     // ── 7. 視窗大小改變時，「符合視窗」模式自動重新置中 ──
     let resizeTimer;
+    let lastLayoutWidth = document.documentElement.clientWidth;
     window.addEventListener('resize', () => {
+        const nextWidth = document.documentElement.clientWidth;
+        const widthChanged = Math.abs(nextWidth - lastLayoutWidth) > 1;
+        lastLayoutWidth = nextWidth;
+        // 手機網址列收合只改變可視高度，不代表編輯區需要重新置中。
+        // 實際旋轉手機或改變螢幕寬度時仍維持原本的 fit 行為。
+        if (window.matchMedia('(pointer: coarse)').matches && !widthChanged) return;
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             if ($('editorZoom').value === 'fit') $('editorFit').click();

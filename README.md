@@ -28,3 +28,8 @@ E-game 達克武館圖片編輯與積木轉換工具，可直接在瀏覽器中�
 ## 原始專案與授權
 
 本專案基於 [Hello Bug（wangicheng）的 egame-image-to-blocks](https://github.com/wangicheng/egame-image-to-blocks) 修改與擴充，沿用 **MIT License**，請保留隨附的 [LICENSE](LICENSE) 及原作者著作權聲明。
+
+
+## 手機版捲動（v0.10.10）
+
+手機版採用穩定的畫布高度，避免瀏覽器網址列收合造成畫布及內容上下位移；只有螢幕寬度真正改變時才重新執行「符合視窗」。一般頁面捲動不會觸發多餘的積木預覽狀態計算。
