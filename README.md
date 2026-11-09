@@ -27,14 +27,9 @@ E-game 達克武館圖片編輯與積木轉換工具，可直接在瀏覽器中�
 
 工具依現況提供，不一定能相容所有 E-game 版本及瀏覽器。下載的 PNG 保存合成圖片，暫不支援保存可重新編輯的分層工程。
 
-## 原始專案與授權
-
-本專案基於 [Hello Bug（wangicheng）的 egame-image-to-blocks](https://github.com/wangicheng/egame-image-to-blocks) 修改與擴充，沿用 **MIT License**，請保留隨附的 [LICENSE](LICENSE) 及原作者著作權聲明。
-
-
 ## 手機版支援
 
-網站已針對手機操作調整，手機積木匯入支援 Android Chrome、iPhone Chrome 與 Safari，透過 JavaScript 書籤將 XML 積木碼貼入 E-game 武館。
+網站已針對手機調整，手機積木匯入支援 Android Chrome、iPhone Chrome 與 Safari，透過 JavaScript 書籤將 XML 積木碼貼入武館。
 
 - **首次設定：** 建立名稱為 `eg` 的書籤，將網址替換為網站提供的書籤程式。
 - **日常使用：** 複製積木碼 → 開啟武館 → 執行書籤 → 貼上 XML。
@@ -42,4 +37,8 @@ E-game 達克武館圖片編輯與積木轉換工具，可直接在瀏覽器中�
 
 貼上視窗支援長篇 XML、自動驗證及匯入，並檢查積木容量與新增數量。匯入成功後自動關閉；部分瀏覽器可直接讀取剪貼簿。
 
-**注意：** E-game 原站並未針對手機操作完整最佳化，尤其 iPhone 裝置的介面排版有問題。積木編輯、工作區縮放及大量積木的執行效能較受到限制。
+**注意：** E-game 原站未針對手機操作完整最佳化，尤其 iPhone 裝置介面排版有問題。積木編輯、工作區縮放及大量積木的執行效能較受限。
+
+## 原始專案與授權
+
+本專案基於 [Hello Bug（wangicheng）的 egame-image-to-blocks](https://github.com/wangicheng/egame-image-to-blocks) 修改與擴充，沿用 **MIT License**，請保留隨附的 [LICENSE](LICENSE) 及原作者著作權聲明。
