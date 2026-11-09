@@ -168,9 +168,26 @@ function changeCanvas(w,h,kind='image',method='nearest',anchor='center'){
 }
 function rgba(){const v=color.value;return [parseInt(v.slice(1,3),16),parseInt(v.slice(3,5),16),parseInt(v.slice(5,7),16),clamp(+alpha.value||0,0,255)];}
 // Each pixel is overwritten with its requested RGBA value. Transparent strokes do not accumulate Alpha.
-function pixel(x,y,erase=false){const size=clamp(+brush.value||1,1,64),left=x-Math.floor((size-1)/2),top=y-Math.floor((size-1)/2);paintCtx.clearRect(left,top,size,size);if(!erase){const c=rgba();if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(left,top,size,size);}}}
-function line(a,b,erase=false){a=bounded(a);b=bounded(b);let x=a.x,y=a.y,dx=Math.abs(b.x-x),dy=Math.abs(b.y-y),sx=x<b.x?1:-1,sy=y<b.y?1:-1,err=dx-dy;for(;;){pixel(x,y,erase);if(x===b.x&&y===b.y)break;const e2=2*err;if(e2>-dy){err-=dy;x+=sx;}if(e2<dx){err+=dx;y+=sy;}}}
-function rect(a,b,solid=false){a=bounded(a);b=bounded(b);const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),r=Math.max(a.x,b.x),bottom=Math.max(a.y,b.y);if(solid){for(let yy=y;yy<=bottom;yy++)line({x,y:yy},{x:r,y:yy});}else{line({x,y},{x:r,y});line({x,y:bottom},{x:r,y:bottom});line({x,y},{x,y:bottom});line({x:r,y},{x:r,y:bottom});}}
+function pixel(x,y,erase=false,width){const size=width??clamp(+brush.value||1,1,64),left=x-Math.floor((size-1)/2),top=y-Math.floor((size-1)/2);paintCtx.clearRect(left,top,size,size);if(!erase){const c=rgba();if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(left,top,size,size);}}}
+function line(a,b,erase=false,width){a=bounded(a);b=bounded(b);let x=a.x,y=a.y,dx=Math.abs(b.x-x),dy=Math.abs(b.y-y),sx=x<b.x?1:-1,sy=y<b.y?1:-1,err=dx-dy;for(;;){pixel(x,y,erase,width);if(x===b.x&&y===b.y)break;const e2=2*err;if(e2>-dy){err-=dy;x+=sx;}if(e2<dx){err+=dx;y+=sy;}}}
+// Small outlines must remain identifiable even if the selected brush is larger
+// than the shape itself. The ordinary pencil/eraser always use the full brush.
+function shapeWidth(span,fraction=.28){return Math.max(1,Math.min(clamp(+brush.value||1,1,64),Math.floor(Math.max(1,span)*fraction)));}
+function rect(a,b,solid=false){
+  a=bounded(a);b=bounded(b);
+  const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),r=Math.max(a.x,b.x),bottom=Math.max(a.y,b.y);
+  if(solid){
+    // O(1) canvas operations, rather than one pixel-stamp per cell per row.
+    // The solid rectangle is independent of the hidden brush-size control.
+    const w=r-x+1,h=bottom-y+1,c=rgba();
+    paintCtx.clearRect(x,y,w,h);
+    if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(x,y,w,h);}
+  }else{
+    const width=shapeWidth(Math.min(r-x+1,bottom-y+1));
+    line({x,y},{x:r,y},false,width);line({x,y:bottom},{x:r,y:bottom},false,width);
+    line({x,y},{x,y:bottom},false,width);line({x:r,y},{x:r,y:bottom},false,width);
+  }
+}
 // Raster shape tools: drawn in the base bitmap, with drag preview restored from a
 // saved image on every move. Keeping pixel operations central preserves alpha and undo.
 const shapeNames={line:'直線',rect:'矩形框',solidRect:'實心矩形',circle:'圓形',ellipse:'橢圓',arrow:'箭頭'};
@@ -182,43 +199,42 @@ function circleEnd(a,b){
 function ellipseRaster(a,b,solid=false){
   a=bounded(a);b=bounded(b);
   const x0=Math.min(a.x,b.x),x1=Math.max(a.x,b.x),y0=Math.min(a.y,b.y),y1=Math.max(a.y,b.y);
-  if(x0===x1&&y0===y1){pixel(x0,y0);return;}
-  if(x0===x1||y0===y1){line({x:x0,y:y0},{x:x1,y:y1});return;}
+  const w=x1-x0+1,h=y1-y0+1;
+  if(w===1||h===1){line({x:x0,y:y0},{x:x1,y:y1},false,shapeWidth(Math.min(w,h)));return;}
   const cx=(x0+x1)/2,cy=(y0+y1)/2,rx=(x1-x0)/2,ry=(y1-y0)/2;
-  if(solid){
-    const c=rgba();
-    paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;
-    for(let y=y0;y<=y1;y++){
-      const norm=(y-cy)/ry,reach=rx*Math.sqrt(Math.max(0,1-norm*norm));
-      const left=Math.max(x0,Math.ceil(cx-reach)),right=Math.min(x1,Math.floor(cx+reach));
-      if(left>right)continue;
-      paintCtx.clearRect(left,y,right-left+1,1);
-      if(c[3])paintCtx.fillRect(left,y,right-left+1,1);
-    }
-    return;
+  // A row-based elliptical annulus avoids the squared-off silhouette caused
+  // by stamping large square brushes along a circular path. Its OUTER ellipse
+  // stays inside the bounds selected by the user. The stroke is inset.
+  const width=solid?0:shapeWidth(Math.min(w,h));
+  const innerRx=Math.max(0,rx-width),innerRy=Math.max(0,ry-width);
+  const c=rgba();
+  if(c[3])paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;
+  function span(x,width,y){if(width<=0)return;paintCtx.clearRect(x,y,width,1);if(c[3])paintCtx.fillRect(x,y,width,1);}
+  for(let y=y0;y<=y1;y++){
+    const norm=(y-cy)/ry,reach=rx*Math.sqrt(Math.max(0,1-norm*norm));
+    const left=Math.max(x0,Math.ceil(cx-reach)),right=Math.min(x1,Math.floor(cx+reach));
+    if(left>right){span(Math.round(cx),1,y);continue;}
+    if(solid||innerRx<=0||innerRy<=0||Math.abs(y-cy)>=innerRy){span(left,right-left+1,y);continue;}
+    const inReach=innerRx*Math.sqrt(Math.max(0,1-Math.pow((y-cy)/innerRy,2)));
+    const innerLeft=Math.ceil(cx-inReach),innerRight=Math.floor(cx+inReach);
+    span(left,Math.max(0,Math.min(right+1,innerLeft)-left),y);
+    span(Math.max(left,innerRight+1),right-Math.max(left,innerRight+1)+1,y);
   }
-  // Trace connected integer line segments to avoid gaps at low pixel resolutions.
-  const count=Math.max(24,Math.min(24000,Math.ceil(2*Math.PI*Math.max(rx,ry)*1.6)));
-  let first=null,last=null;
-  for(let t=0;t<=count;t++){
-    const theta=t*2*Math.PI/count;
-    const next={x:Math.round(cx+rx*Math.cos(theta)),y:Math.round(cy+ry*Math.sin(theta))};
-    if(!first)first=next;
-    if(last&&(last.x!==next.x||last.y!==next.y))line(last,next);
-    last=next;
-  }
-  if(first&&last)line(last,first);
 }
 function arrowRaster(a,b){
   a=bounded(a);b=bounded(b);
-  line(a,b);
   const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
+  // An arrow head must be several stroke-widths long to remain visible.
+  // Limit the width for short arrows instead of allowing the shaft to swallow
+  // both head strokes and look like a diagonal bar.
+  const width=shapeWidth(Math.max(1,length),.075);
+  line(a,b,false,width);
   if(length<2)return;
-  const headLen=Math.min(36,Math.max(4,length*.28));
+  const headLen=Math.min(length*.38,Math.max(4,Math.min(36,length*.28),width*3));
   const angle=Math.atan2(dy,dx),spread=Math.PI/5;
   for(const dir of [-1,1]){
     const theta=angle+Math.PI+dir*spread;
-    line(b,{x:Math.round(b.x+headLen*Math.cos(theta)),y:Math.round(b.y+headLen*Math.sin(theta))});
+    line(b,{x:Math.round(b.x+headLen*Math.cos(theta)),y:Math.round(b.y+headLen*Math.sin(theta))},false,width);
   }
 }
 function drawShape(value,a,b){
