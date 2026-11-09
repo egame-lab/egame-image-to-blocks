@@ -170,27 +170,56 @@ function rgba(){const v=color.value;return [parseInt(v.slice(1,3),16),parseInt(v
 // Each pixel is overwritten with its requested RGBA value. Transparent strokes do not accumulate Alpha.
 function pixel(x,y,erase=false,width){const size=width??clamp(+brush.value||1,1,64),left=x-Math.floor((size-1)/2),top=y-Math.floor((size-1)/2);paintCtx.clearRect(left,top,size,size);if(!erase){const c=rgba();if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(left,top,size,size);}}}
 function line(a,b,erase=false,width){a=bounded(a);b=bounded(b);let x=a.x,y=a.y,dx=Math.abs(b.x-x),dy=Math.abs(b.y-y),sx=x<b.x?1:-1,sy=y<b.y?1:-1,err=dx-dy;for(;;){pixel(x,y,erase,width);if(x===b.x&&y===b.y)break;const e2=2*err;if(e2>-dy){err-=dy;x+=sx;}if(e2<dx){err+=dx;y+=sy;}}}
-// All geometric shapes use path geometry (rather than square pixel stamps).
-// Cap an extreme brush relative to the SHORT side; otherwise the hole of a
-// circle/ellipse disappears and a short arrow becomes an indistinct blob.
-function shapeWidth(span,fraction=.19){
-  return Math.max(1,Math.min(clamp(+brush.value||1,1,64),Math.max(1,span*fraction)));
-}
-function shapePath(path,width=1,solid=false){
+// Geometry paths use the chosen brush width in EDITING canvas pixels.
+// Do not silently shrink the stroke when a circle/ellipse is flattened, or
+// when a small rectangle/arrow is drawn. Zoom only changes display size.
+// A very thin ellipse can naturally lose its hollow center if its height is
+// smaller than the selected stroke width; that is different from scaling
+// the stroke with its minor axis.
+const shapeStrokeWidth=()=>clamp(+brush.value||1,1,64);
+// Rasterize a vector outline as a 1-bit mask in EDITING IMAGE pixels.
+// Canvas strokes normally create antialiased alpha fringes; those fringes
+// become unexpected semi-transparent palette colors when converted to blocks.
+// The mask is independent of CSS zoom, and pixels it touches are replaced
+// with the exact selected RGBA rather than blended with old image content.
+const shapeMask=document.createElement('canvas');
+const shapeMaskCtx=shapeMask.getContext('2d',{willReadFrequently:true});
+function shapePath(path,width=1,solid=false,bounds){
+  const t=paintCtx.getTransform(),target=paintCtx.canvas,margin=Math.ceil(width/2)+2;
+  // All draw-tool contexts use a 1:1 bitmap transform with optional translation
+  // for a picture layer. Map the geometric bounds into that layer's bitmap.
+  const x=Math.max(0,Math.floor(bounds.x+t.e-margin));
+  const y=Math.max(0,Math.floor(bounds.y+t.f-margin));
+  const r=Math.min(target.width,Math.ceil(bounds.r+t.e+margin));
+  const b=Math.min(target.height,Math.ceil(bounds.b+t.f+margin));
+  const w=r-x,h=b-y;
+  if(w<=0||h<=0)return;
+  if(shapeMask.width!==w)shapeMask.width=w;
+  if(shapeMask.height!==h)shapeMask.height=h;
+  shapeMaskCtx.setTransform(1,0,0,1,0,0);
+  shapeMaskCtx.clearRect(0,0,w,h);
+  shapeMaskCtx.setTransform(t.a,t.b,t.c,t.d,t.e-x,t.f-y);
+  shapeMaskCtx.lineWidth=width;
+  shapeMaskCtx.lineJoin='round';shapeMaskCtx.lineCap='round';
+  shapeMaskCtx.fillStyle=shapeMaskCtx.strokeStyle='#000';
+  if(solid)shapeMaskCtx.fill(path);else shapeMaskCtx.stroke(path);
+  const mask=shapeMaskCtx.getImageData(0,0,w,h).data;
   const c=rgba();
-  paintCtx.save();
-  paintCtx.lineWidth=width;
-  paintCtx.lineCap='round';
-  paintCtx.lineJoin='round';
-  // Replace covered pixels rather than alpha-blending over the old drawing.
-  // A single Path2D also avoids over-darkening the joints of the arrow head.
-  paintCtx.globalCompositeOperation='destination-out';
-  paintCtx.strokeStyle='#000';paintCtx.fillStyle='#000';
-  if(solid)paintCtx.fill(path);else paintCtx.stroke(path);
-  if(c[3]){
-    paintCtx.globalCompositeOperation='source-over';
-    paintCtx.strokeStyle=paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;
-    if(solid)paintCtx.fill(path);else paintCtx.stroke(path);
+  paintCtx.save();paintCtx.setTransform(1,0,0,1,0,0);
+  if(c[3])paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;
+  for(let iy=0;iy<h;iy++){
+    let run=-1;
+    for(let ix=0;ix<=w;ix++){
+      // >=50% coverage = one hard-edged image pixel, regardless of display zoom.
+      const covered=ix<w&&mask[(iy*w+ix)*4+3]>=128;
+      if(covered&&run<0)run=ix;
+      else if(!covered&&run>=0){
+        const length=ix-run;
+        paintCtx.clearRect(x+run,y+iy,length,1);
+        if(c[3])paintCtx.fillRect(x+run,y+iy,length,1);
+        run=-1;
+      }
+    }
   }
   paintCtx.restore();
 }
@@ -203,11 +232,11 @@ function rect(a,b,solid=false){
     if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(x,y,w,h);}
     return;
   }
-  const width=shapeWidth(Math.min(w,h));
+  const width=shapeStrokeWidth();
   const path=new Path2D();
   if(w<=1||h<=1){path.moveTo(x+.5,y+.5);path.lineTo(r+.5,bottom+.5);}
-  else path.rect(x+width/2,y+width/2,Math.max(0,w-width),Math.max(0,h-width));
-  shapePath(path,width);
+  else path.rect(x+.5,y+.5,w-1,h-1);
+  shapePath(path,width,false,{x,y,r:r+1,b:bottom+1});
 }
 const shapeNames={line:'直線',rect:'矩形框',solidRect:'實心矩形',circle:'圓形',ellipse:'橢圓',arrow:'箭頭'};
 const isShapeTool=value=>Object.prototype.hasOwnProperty.call(shapeNames,value);
@@ -219,36 +248,40 @@ function ellipseRaster(a,b,solid=false){
   a=bounded(a);b=bounded(b);
   const x0=Math.min(a.x,b.x),x1=Math.max(a.x,b.x),y0=Math.min(a.y,b.y),y1=Math.max(a.y,b.y);
   const w=x1-x0+1,h=y1-y0+1;
-  const width=solid?0:shapeWidth(Math.min(w,h));
+  const width=shapeStrokeWidth();
   const cx=(x0+x1+1)/2,cy=(y0+y1+1)/2;
-  const rx=Math.max(.5,(w-width)/2),ry=Math.max(.5,(h-width)/2);
   const path=new Path2D();
-  if(w<=1||h<=1){path.moveTo(x0+.5,y0+.5);path.lineTo(x1+.5,y1+.5);shapePath(path,1);return;}
-  path.ellipse(cx,cy,solid?w/2:rx,solid?h/2:ry,0,0,Math.PI*2);
-  shapePath(path,Math.max(1,width),solid);
+  if(w<=1||h<=1){path.moveTo(x0+.5,y0+.5);path.lineTo(x1+.5,y1+.5);shapePath(path,width,false,{x:x0,y:y0,r:x1+1,b:y1+1});return;}
+  // The oval is defined by the dragged bounding box. Canvas strokes its
+  // path uniformly in both axes; unlike scaling a pre-drawn circle, line
+  // thickness is not squeezed when the ellipse becomes flatter.
+  path.ellipse(cx,cy,solid?w/2:(w-1)/2,solid?h/2:(h-1)/2,0,0,Math.PI*2);
+  shapePath(path,width,solid,{x:x0,y:y0,r:x1+1,b:y1+1});
 }
 function arrowRaster(a,b){
   a=bounded(a);b=bounded(b);
   const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
-  const width=shapeWidth(Math.max(1,length),.075);
-  if(length<2){const path=new Path2D();path.moveTo(a.x+.5,a.y+.5);path.lineTo(a.x+.501,a.y+.501);shapePath(path,1);return;}
+  const width=shapeStrokeWidth();
+  if(length<2){const path=new Path2D();path.moveTo(a.x+.5,a.y+.5);path.lineTo(a.x+.501,a.y+.501);shapePath(path,1,false,{x:a.x,y:a.y,r:a.x+1,b:a.y+1});return;}
   // Arrow head and shaft are ONE stroked path to avoid thick overlapping ends.
   // Head width is proportional to arrow length, not the brush-size setting.
   const headLen=Math.min(length*.36,Math.max(width*4,length*.30));
   const angle=Math.atan2(dy,dx),spread=Math.PI/6;
   const x=b.x+.5,y=b.y+.5,path=new Path2D();
+  let minX=Math.min(a.x+.5,x),minY=Math.min(a.y+.5,y),maxX=Math.max(a.x+.5,x),maxY=Math.max(a.y+.5,y);
   path.moveTo(a.x+.5,a.y+.5);path.lineTo(x,y);
   for(const dir of [-1,1]){
     const theta=angle+Math.PI+dir*spread;
-    path.moveTo(x+headLen*Math.cos(theta),y+headLen*Math.sin(theta));
-    path.lineTo(x,y);
+    const hx=x+headLen*Math.cos(theta),hy=y+headLen*Math.sin(theta);
+    minX=Math.min(minX,hx);minY=Math.min(minY,hy);maxX=Math.max(maxX,hx);maxY=Math.max(maxY,hy);
+    path.moveTo(hx,hy);path.lineTo(x,y);
   }
-  shapePath(path,width);
+  shapePath(path,width,false,{x:minX,y:minY,r:maxX,b:maxY});
 }
 function drawShape(value,a,b){
   if(value==='line'){
     const path=new Path2D();path.moveTo(a.x+.5,a.y+.5);path.lineTo(b.x+.5,b.y+.5);
-    shapePath(path,clamp(+brush.value||1,1,64));
+    shapePath(path,clamp(+brush.value||1,1,64),false,{x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),r:Math.max(a.x,b.x)+1,b:Math.max(a.y,b.y)+1});
   }
   else if(value==='rect'||value==='solidRect')rect(a,b,value==='solidRect');
   else if(value==='circle')ellipseRaster(a,circleEnd(a,b),$('editorShapeFilled').checked);
@@ -269,7 +302,8 @@ function makeShapePreview(){
 // to their travel direction, so reserve a larger margin for the arrowhead.
 function shapePreviewBounds(i,v){
   const a=i.start,b=i.tool==='circle'?circleEnd(i.start,i.current):i.current;
-  const margin=Math.ceil(i.tool==='arrow'?Math.hypot(b.x-a.x,b.y-a.y)*.40+5:clamp(+brush.value||1,1,64)+5);
+  const stroke=clamp(+brush.value||1,1,64);
+  const margin=Math.ceil(i.tool==='arrow'?Math.max(Math.hypot(b.x-a.x,b.y-a.y)*.40,stroke/2)+5:stroke+5);
   const x0=Math.min(a.x,b.x)-margin,y0=Math.min(a.y,b.y)-margin;
   const x1=Math.max(a.x,b.x)+margin+1,y1=Math.max(a.y,b.y)+margin+1;
   const world={x:Math.max(0,Math.floor(x0)),y:Math.max(0,Math.floor(y0)),
