@@ -553,8 +553,8 @@
 
     <footer class="app-foot">
         <div class="foot-card">
-            <p class="project-credit"><span class="ver">v0.10.10</span>非官方 E-game 輔助工具，改作自 Hello Bug（GitHub：wangicheng）的 <a href="https://github.com/wangicheng/egame-image-to-blocks" rel="noopener noreferrer" target="_blank">egame-image-to-blocks</a>，沿用原專案的 <a href="https://github.com/wangicheng/egame-image-to-blocks/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT 授權</a>。</p>
-            <p class="usage-disclaimer"><strong>使用聲明</strong><span>本工具僅供圖片編輯及積木轉換，請遵守遊戲內的武館規範，勿用於製作或發布不雅、侮辱、騷擾等不當內容。武館作品及發布行為由使用者自行負責，應謹慎使用工具；遊戲或瀏覽器更新可能影響工具部分功能。</span></p>
+            <p class="project-credit"><span class="ver">v0.10.10</span>非官方 E-game 輔助工具，改自 Hello Bug（GitHub：wangicheng）的 <a href="https://github.com/wangicheng/egame-image-to-blocks" rel="noopener noreferrer" target="_blank">egame-image-to-blocks</a>，沿用原專案的 <a href="https://github.com/wangicheng/egame-image-to-blocks/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT 授權</a>。</p>
+            <p class="usage-disclaimer"><strong>使用聲明</strong><span>本工具僅供圖片編輯及積木轉換，請遵守遊戲內的武館規範，勿用於製作或發布不雅、侮辱、騷擾等不當內容。武館作品及發布行為由使用者自行負責，請謹慎使用工具；遊戲或瀏覽器更新可能影響工具部分功能。</span></p>
             <details class="fold fold-plain">
                 <summary>鍵盤快捷鍵</summary>
                 <ul class="keys">
@@ -622,7 +622,7 @@
             <button type="button" class="transfer-close" id="transferClose" aria-label="關閉教學">×</button>
         </div>
         <div class="transfer-dialog-inner">
-            <p class="transfer-intro">本網站可以產生 XML 積木碼，但原本武館沒有直接貼上積木碼的按鈕。請選擇一種匯入方式。</p>
+            <p class="transfer-intro">本網站可產生 XML 積木碼。由於原武館沒有可貼上積木碼的按鈕，請選擇一種匯入方式。另外手機裝置無法直接操作工具包與控制台，請使用書籤功能。</p>
             <div class="transfer-methods" role="tablist" aria-label="貼上積木的方法">
                 <button type="button" id="transferTabTools" class="transfer-method is-active" role="tab" aria-selected="true" aria-controls="transferPanelTools" data-transfer-method="tools">
                     <strong>積木工具包</strong><span>推薦・經常使用</span>
@@ -631,7 +631,7 @@
                     <strong>控制台匯入</strong><span>免安裝・直接執行</span>
                 </button>
                 <button type="button" id="transferTabBookmark" class="transfer-method" role="tab" aria-selected="false" aria-controls="transferPanelBookmark" data-transfer-method="bookmark" tabindex="-1">
-                    <strong>一鍵貼上書籤</strong><span>免安裝・設定一次</span>
+                    <strong>一鍵貼上書籤</strong><span>手機適用・免安裝</span>
                 </button>
             </div>
             <div id="transferPanelTools" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabTools" data-transfer-panel="tools">
@@ -639,7 +639,7 @@
                     <div class="transfer-tool-option">
                         <span class="transfer-tool-tag">推薦</span>
                         <a href="https://github.com/egame-lab/egame-copy-paste" target="_blank" rel="noopener noreferrer">E-game 積木工具（精簡版）</a>
-                        <span>提供積木複製、貼上及加速功能，其中加速功能經改進後有更快的執行速度</span>
+                        <span>提供積木複製、貼上及加速的基礎功能，其中經改進後加速功能有較原版更快的執行速度</span>
                     </div>
                     <div class="transfer-tool-option">
                         <span class="transfer-tool-tag transfer-tool-tag-alt">其他選擇</span>
@@ -654,18 +654,17 @@
                     <li>貼上後可按「執行」或「加速」繪圖，確認結果後再儲存武館。</li>
                 </ol>
                 <button type="button" class="btn btn-primary transfer-action" id="transferCopyXml" disabled>複製積木碼</button>
-                <p class="transfer-note">工具需另行安裝。標準積木的繪圖指令較多，建議使用「加速」功能。Ctrl+V 可在本網站貼上圖片，但無法直接將積木碼貼進原版武館。</p>
+                <p class="transfer-note">工具需另行安裝。標準積木繪圖指令較多，建議使用「加速」功能。另外 Ctrl+V 可在本網站貼上圖片，但無法直接將積木碼貼進原版武館。</p>
             </div>
             <div id="transferPanelConsole" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabConsole" data-transfer-panel="console" hidden>
                 <ol class="transfer-steps">
-                    <li>先在本網站按「預覽積木效果」，產生積木碼。</li>
+                    <li>需先在本網站按「預覽積木效果」，產生積木碼。</li>
                     <li>按下方「複製匯入指令」。指令會包含這次的積木，不必重新複製積木碼。</li>
-                    <li>開啟武館積木編輯畫面，按 <kbd>F12</kbd>，選擇 <strong>Console（控制台）</strong>。</li>
-                    <li>按 <kbd>Ctrl</kbd> + <kbd>V</kbd> 貼上，再按 <kbd>Enter</kbd> 執行。</li>
-                    <li>確認積木出現後儲存。建議先在空白工作區使用，避免重複匯入。</li>
+                    <li>進入武館積木編輯畫面，電腦按 <kbd>F12</kbd>，選擇 <strong>Console（控制台）</strong>。</li>
+                    <li>按 <kbd>Ctrl</kbd> + <kbd>V</kbd> 貼上，再按 <kbd>Enter</kbd> 執行，確認積木出現後儲存武館。</li>
                 </ol>
                 <button type="button" class="btn btn-primary transfer-action" id="transferCopyConsole" disabled>複製匯入指令</button>
-                <p class="transfer-note">程式不會讀取剪貼簿；它直接包含目前產生的積木資料。瀏覽器可能阻止貼上指令，請只執行自己信任的程式。</p>
+                <p class="transfer-note">程式直接包含目前產生的積木資料。瀏覽器可能阻止貼上指令，請只執行自己信任的程式。</p>
             </div>
             <div id="transferPanelBookmark" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabBookmark" data-transfer-panel="bookmark" hidden>
                 <ol class="transfer-steps">
@@ -675,10 +674,10 @@
                 </ol>
                 <p class="bookmark-mobile-guide"><strong>手機如何開啟書籤？</strong> Android Chrome：在武館網址列輸入 <code>eg</code>，點選帶書籤圖示的建議。iPhone Chrome／Safari：從書籤清單點選 <code>eg</code>。</p>
                 <button type="button" class="btn btn-primary transfer-action" id="transferCopyBookmark">複製書籤程式</button>
-                <p class="transfer-note">書籤只需設定一次；目前已在 Android Chrome、iPhone Chrome 與 Safari 測試可用。匯入不會自動儲存武館。</p>
+                <p class="transfer-note">書籤只需設定一次；目前已於 Android Chrome、iPhone Chrome 與 Safari 測試。</p>
             </div>
             <div class="transfer-status" id="transferStatus" role="status" aria-live="polite">完成積木預覽後，即可複製需要的內容。</div>
-            <p class="transfer-footnote">標準積木使用武館積木包中的積木，但複雜圖片可能執行緩慢；內建擴充積木包使用遊戲已實作但武館積木包未提供的積木類型。三種方式皆單純加入積木，不自動儲存。</p>
+            <p class="transfer-footnote">標準積木使用武館積木包中的積木，但複雜圖片可能執行緩慢；內建擴充積木包使用遊戲已實作但武館積木包未提供的積木類型。</p>
         </div>
     </section>
 </div>
