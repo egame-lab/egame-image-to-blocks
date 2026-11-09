@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#61341b">
+    <title>像素積木工坊｜E-game 圖片轉積木</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-converted="no" data-view="quick" data-stage="add">
+
+<!-- 背景：淡淡的魔法陣 -->
+<svg class="arcana" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><g id="arcana" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"><circle r="108" stroke-width="2.6"/><circle r="100" stroke-width="1.2"/><circle r="62" stroke-width="1.6"/><circle r="56" stroke-width="1" stroke-dasharray="2 5"/><line x1="108" y1="0" x2="116" y2="0" stroke-width="1.2"/><line x1="107.59" y1="9.41" x2="112.57" y2="9.85" stroke-width="1.2"/><line x1="106.36" y1="18.75" x2="114.24" y2="20.14" stroke-width="1.2"/><line x1="104.32" y1="27.95" x2="109.15" y2="29.25" stroke-width="1.2"/><line x1="101.49" y1="36.94" x2="109" y2="39.67" stroke-width="1.2"/><line x1="97.88" y1="45.64" x2="102.41" y2="47.76" stroke-width="1.2"/><line x1="93.53" y1="54" x2="100.46" y2="58" stroke-width="1.2"/><line x1="88.47" y1="61.95" x2="92.56" y2="64.81" stroke-width="1.2"/><line x1="82.73" y1="69.42" x2="88.86" y2="74.56" stroke-width="1.2"/><line x1="76.37" y1="76.37" x2="79.9" y2="79.9" stroke-width="1.2"/><line x1="69.42" y1="82.73" x2="74.56" y2="88.86" stroke-width="1.2"/><line x1="61.95" y1="88.47" x2="64.81" y2="92.56" stroke-width="1.2"/><line x1="54" y1="93.53" x2="58" y2="100.46" stroke-width="1.2"/><line x1="45.64" y1="97.88" x2="47.76" y2="102.41" stroke-width="1.2"/><line x1="36.94" y1="101.49" x2="39.67" y2="109" stroke-width="1.2"/><line x1="27.95" y1="104.32" x2="29.25" y2="109.15" stroke-width="1.2"/><line x1="18.75" y1="106.36" x2="20.14" y2="114.24" stroke-width="1.2"/><line x1="9.41" y1="107.59" x2="9.85" y2="112.57" stroke-width="1.2"/><line x1="0" y1="108" x2="0" y2="116" stroke-width="1.2"/><line x1="-9.41" y1="107.59" x2="-9.85" y2="112.57" stroke-width="1.2"/><line x1="-18.75" y1="106.36" x2="-20.14" y2="114.24" stroke-width="1.2"/><line x1="-27.95" y1="104.32" x2="-29.25" y2="109.15" stroke-width="1.2"/><line x1="-36.94" y1="101.49" x2="-39.67" y2="109" stroke-width="1.2"/><line x1="-45.64" y1="97.88" x2="-47.76" y2="102.41" stroke-width="1.2"/><line x1="-54" y1="93.53" x2="-58" y2="100.46" stroke-width="1.2"/><line x1="-61.95" y1="88.47" x2="-64.81" y2="92.56" stroke-width="1.2"/><line x1="-69.42" y1="82.73" x2="-74.56" y2="88.86" stroke-width="1.2"/><line x1="-76.37" y1="76.37" x2="-79.9" y2="79.9" stroke-width="1.2"/><line x1="-82.73" y1="69.42" x2="-88.86" y2="74.56" stroke-width="1.2"/><line x1="-88.47" y1="61.95" x2="-92.56" y2="64.81" stroke-width="1.2"/><line x1="-93.53" y1="54" x2="-100.46" y2="58" stroke-width="1.2"/><line x1="-97.88" y1="45.64" x2="-102.41" y2="47.76" stroke-width="1.2"/><line x1="-101.49" y1="36.94" x2="-109" y2="39.67" stroke-width="1.2"/><line x1="-104.32" y1="27.95" x2="-109.15" y2="29.25" stroke-width="1.2"/><line x1="-106.36" y1="18.75" x2="-114.24" y2="20.14" stroke-width="1.2"/><line x1="-107.59" y1="9.41" x2="-112.57" y2="9.85" stroke-width="1.2"/><line x1="-108" y1="0" x2="-116" y2="0" stroke-width="1.2"/><line x1="-107.59" y1="-9.41" x2="-112.57" y2="-9.85" stroke-width="1.2"/><line x1="-106.36" y1="-18.75" x2="-114.24" y2="-20.14" stroke-width="1.2"/><line x1="-104.32" y1="-27.95" x2="-109.15" y2="-29.25" stroke-width="1.2"/><line x1="-101.49" y1="-36.94" x2="-109" y2="-39.67" stroke-width="1.2"/><line x1="-97.88" y1="-45.64" x2="-102.41" y2="-47.76" stroke-width="1.2"/><line x1="-93.53" y1="-54" x2="-100.46" y2="-58" stroke-width="1.2"/><line x1="-88.47" y1="-61.95" x2="-92.56" y2="-64.81" stroke-width="1.2"/><line x1="-82.73" y1="-69.42" x2="-88.86" y2="-74.56" stroke-width="1.2"/><line x1="-76.37" y1="-76.37" x2="-79.9" y2="-79.9" stroke-width="1.2"/><line x1="-69.42" y1="-82.73" x2="-74.56" y2="-88.86" stroke-width="1.2"/><line x1="-61.95" y1="-88.47" x2="-64.81" y2="-92.56" stroke-width="1.2"/><line x1="-54" y1="-93.53" x2="-58" y2="-100.46" stroke-width="1.2"/><line x1="-45.64" y1="-97.88" x2="-47.76" y2="-102.41" stroke-width="1.2"/><line x1="-36.94" y1="-101.49" x2="-39.67" y2="-109" stroke-width="1.2"/><line x1="-27.95" y1="-104.32" x2="-29.25" y2="-109.15" stroke-width="1.2"/><line x1="-18.75" y1="-106.36" x2="-20.14" y2="-114.24" stroke-width="1.2"/><line x1="-9.41" y1="-107.59" x2="-9.85" y2="-112.57" stroke-width="1.2"/><line x1="-0" y1="-108" x2="-0" y2="-116" stroke-width="1.2"/><line x1="9.41" y1="-107.59" x2="9.85" y2="-112.57" stroke-width="1.2"/><line x1="18.75" y1="-106.36" x2="20.14" y2="-114.24" stroke-width="1.2"/><line x1="27.95" y1="-104.32" x2="29.25" y2="-109.15" stroke-width="1.2"/><line x1="36.94" y1="-101.49" x2="39.67" y2="-109" stroke-width="1.2"/><line x1="45.64" y1="-97.88" x2="47.76" y2="-102.41" stroke-width="1.2"/><line x1="54" y1="-93.53" x2="58" y2="-100.46" stroke-width="1.2"/><line x1="61.95" y1="-88.47" x2="64.81" y2="-92.56" stroke-width="1.2"/><line x1="69.42" y1="-82.73" x2="74.56" y2="-88.86" stroke-width="1.2"/><line x1="76.37" y1="-76.37" x2="79.9" y2="-79.9" stroke-width="1.2"/><line x1="82.73" y1="-69.42" x2="88.86" y2="-74.56" stroke-width="1.2"/><line x1="88.47" y1="-61.95" x2="92.56" y2="-64.81" stroke-width="1.2"/><line x1="93.53" y1="-54" x2="100.46" y2="-58" stroke-width="1.2"/><line x1="97.88" y1="-45.64" x2="102.41" y2="-47.76" stroke-width="1.2"/><line x1="101.49" y1="-36.94" x2="109" y2="-39.67" stroke-width="1.2"/><line x1="104.32" y1="-27.95" x2="109.15" y2="-29.25" stroke-width="1.2"/><line x1="106.36" y1="-18.75" x2="114.24" y2="-20.14" stroke-width="1.2"/><line x1="107.59" y1="-9.41" x2="112.57" y2="-9.85" stroke-width="1.2"/><polygon points="116.13,-14.26 132,0 116.13,14.26" stroke-width="1.6"/><path d="M119.77 27.89L121.03 30.83L123.97 32.09L121.03 33.35L119.77 36.29L118.51 33.35L115.57 32.09L118.51 30.83Z" fill="currentColor" stroke="none"/><polygon points="107.7,45.72 114.32,66 93.44,70.41" stroke-width="1.6"/><path d="M87.68 83.48L88.94 86.42L91.88 87.68L88.94 88.94L87.68 91.88L86.42 88.94L83.48 87.68L86.42 86.42Z" fill="currentColor" stroke="none"/><polygon points="70.41,93.44 66,114.32 45.72,107.7" stroke-width="1.6"/><path d="M32.09 115.57L33.35 118.51L36.29 119.77L33.35 121.03L32.09 123.97L30.83 121.03L27.89 119.77L30.83 118.51Z" fill="currentColor" stroke="none"/><polygon points="14.26,116.13 0,132 -14.26,116.13" stroke-width="1.6"/><path d="M-32.09 115.57L-30.83 118.51L-27.89 119.77L-30.83 121.03L-32.09 123.97L-33.35 121.03L-36.29 119.77L-33.35 118.51Z" fill="currentColor" stroke="none"/><polygon points="-45.72,107.7 -66,114.32 -70.41,93.44" stroke-width="1.6"/><path d="M-87.68 83.48L-86.42 86.42L-83.48 87.68L-86.42 88.94L-87.68 91.88L-88.94 88.94L-91.88 87.68L-88.94 86.42Z" fill="currentColor" stroke="none"/><polygon points="-93.44,70.41 -114.32,66 -107.7,45.72" stroke-width="1.6"/><path d="M-119.77 27.89L-118.51 30.83L-115.57 32.09L-118.51 33.35L-119.77 36.29L-121.03 33.35L-123.97 32.09L-121.03 30.83Z" fill="currentColor" stroke="none"/><polygon points="-116.13,14.26 -132,0 -116.13,-14.26" stroke-width="1.6"/><path d="M-119.77 -36.29L-118.51 -33.35L-115.57 -32.09L-118.51 -30.83L-119.77 -27.89L-121.03 -30.83L-123.97 -32.09L-121.03 -33.35Z" fill="currentColor" stroke="none"/><polygon points="-107.7,-45.72 -114.32,-66 -93.44,-70.41" stroke-width="1.6"/><path d="M-87.68 -91.88L-86.42 -88.94L-83.48 -87.68L-86.42 -86.42L-87.68 -83.48L-88.94 -86.42L-91.88 -87.68L-88.94 -88.94Z" fill="currentColor" stroke="none"/><polygon points="-70.41,-93.44 -66,-114.32 -45.72,-107.7" stroke-width="1.6"/><path d="M-32.09 -123.97L-30.83 -121.03L-27.89 -119.77L-30.83 -118.51L-32.09 -115.57L-33.35 -118.51L-36.29 -119.77L-33.35 -121.03Z" fill="currentColor" stroke="none"/><polygon points="-14.26,-116.13 -0,-132 14.26,-116.13" stroke-width="1.6"/><path d="M32.09 -123.97L33.35 -121.03L36.29 -119.77L33.35 -118.51L32.09 -115.57L30.83 -118.51L27.89 -119.77L30.83 -121.03Z" fill="currentColor" stroke="none"/><polygon points="45.72,-107.7 66,-114.32 70.41,-93.44" stroke-width="1.6"/><path d="M87.68 -91.88L88.94 -88.94L91.88 -87.68L88.94 -86.42L87.68 -83.48L86.42 -86.42L83.48 -87.68L86.42 -88.94Z" fill="currentColor" stroke="none"/><polygon points="93.44,-70.41 114.32,-66 107.7,-45.72" stroke-width="1.6"/><path d="M119.77 -36.29L121.03 -33.35L123.97 -32.09L121.03 -30.83L119.77 -27.89L118.51 -30.83L115.57 -32.09L118.51 -33.35Z" fill="currentColor" stroke="none"/><path d="M0 -84 L81.89 18.69 L-36.45 75.68 L-65.67 -52.37 L65.67 -52.37 L36.45 75.68 L-81.89 18.69Z" stroke-width="2"/><polygon points="0,-84 65.67,-52.37 81.89,18.69 36.45,75.68 -36.45,75.68 -81.89,18.69 -65.67,-52.37" stroke-width="1.2"/><polygon points="0,52 -45.03,-26 45.03,-26" stroke-width="1.6"/><polygon points="28.28,28.28 -28.28,28.28 -28.28,-28.28 28.28,-28.28" stroke-width="1.2" transform="rotate(8)"/><circle class="sat" cx="0" cy="-92" r="15.5" stroke-width="2"/><text x="0" y="-88" text-anchor="middle" font-size="11">for</text><circle class="sat" cx="79.67" cy="-46" r="15.5" stroke-width="2"/><text x="79.67" y="-42" text-anchor="middle" font-size="12">&lt;/&gt;</text><circle class="sat" cx="79.67" cy="46" r="15.5" stroke-width="2"/><text x="79.67" y="50" text-anchor="middle" font-size="11">else</text><circle class="sat" cx="0" cy="92" r="15.5" stroke-width="2"/><text x="0" y="96" text-anchor="middle" font-size="12">&lt;/&gt;</text><circle class="sat" cx="-79.67" cy="46" r="15.5" stroke-width="2"/><text x="-79.67" y="50" text-anchor="middle" font-size="11">{ }</text><circle class="sat" cx="-79.67" cy="-46" r="15.5" stroke-width="2"/><text x="-79.67" y="-42" text-anchor="middle" font-size="12">if</text><text x="0" y="9" text-anchor="middle" font-size="26">&lt;/&gt;</text></g></defs><g class="spin s1" style="transform-origin:140px 100px"><use href="#arcana" transform="translate(140 100) scale(2.6)"/></g><g class="spin s2" style="transform-origin:150px 600px"><use href="#arcana" transform="translate(150 600) scale(2.35)"/></g><g class="spin s3" style="transform-origin:566px 455px"><use href="#arcana" transform="translate(566 455) scale(1.55)"/></g><g class="spin s4" style="transform-origin:945px 70px"><use href="#arcana" transform="translate(945 70) scale(1.2)"/></g><g class="spin s5" style="transform-origin:960px 650px"><use href="#arcana" transform="translate(960 650) scale(1.2)"/></g></svg>
+<div class="torchlight" aria-hidden="true"></div>
+
+<main class="app">
+
+    <!-- ───────── 標題區 ───────── -->
+    <header class="hero">
+        <div class="hero-brand">
+            <div class="emblem" aria-hidden="true">
+                <svg viewBox="0 0 80 80" width="72" height="72">
+                    <circle cx="40" cy="40" r="36" fill="#3f2211" stroke="#e6bd66" stroke-width="2.5"/>
+                    <circle cx="40" cy="40" r="31" fill="none" stroke="#b68a45" stroke-width="1.2"/>
+                    <circle cx="40" cy="40" r="31" fill="none" stroke="#e6bd66" stroke-width="1" stroke-dasharray="1.5 4.5"/>
+                    <polygon points="40,12 64,54 16,54" fill="none" stroke="#e6bd66" stroke-width="1.6" stroke-linejoin="round"/>
+                    <polygon points="40,68 16,26 64,26" fill="none" stroke="#b68a45" stroke-width="1.4" stroke-linejoin="round"/>
+                    <g shape-rendering="crispEdges">
+                        <rect x="32" y="32" width="8" height="8" fill="#d96a3c"/>
+                        <rect x="40" y="32" width="8" height="8" fill="#f4d88c"/>
+                        <rect x="32" y="40" width="8" height="8" fill="#f4d88c"/>
+                        <rect x="40" y="40" width="8" height="8" fill="#c0532a"/>
+                    </g>
+                </svg>
+            </div>
+            <div class="hero-text">
+                <p class="kicker">E-GAME　圖片轉積木</p>
+                <h1>像素積木工坊</h1>
+                <p class="tagline">將圖片轉換為 E-game 可使用的積木。</p>
+            </div>
+        </div>
+        <nav class="view-switch" aria-label="選擇使用方式">
+            <button type="button" id="switchQuick" class="view-tab is-active" aria-pressed="true">
+                <span class="tab-title">快速轉換</span>
+                <span class="tab-sub">放入圖片即可轉換</span>
+            </button>
+            <button type="button" id="switchAdvanced" class="view-tab" aria-pressed="false">
+                <span class="tab-title">進階編輯</span>
+                <span class="tab-sub">繪圖、調整、圖層</span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- ───────── 三步驟進度（遊戲任務牌） ───────── -->
+    <ol class="quest" aria-label="操作進度，僅顯示狀態，不可點擊">
+        <li class="quest-item" data-q="1"><span class="gem" aria-hidden="true"><b>一</b></span><span class="quest-label">準備圖片</span></li>
+        <li class="quest-item" data-q="2"><span class="gem" aria-hidden="true"><b>二</b></span><span class="quest-label">預覽積木效果</span></li>
+        <li class="quest-item" data-q="3"><span class="gem" aria-hidden="true"><b>三</b></span><span class="quest-label">複製積木碼</span></li>
+    </ol>
+
+    <noscript><p class="panel noscript">這個工具需要開啟 JavaScript 才能使用。</p></noscript>
+
+    <!-- ───────── 快速轉換 ───────── -->
+    <section class="panel quick-panel" id="quickPanel" aria-labelledby="quickTitle">
+        <h2 id="quickTitle" class="sr-only">快速轉換</h2>
+
+        <div class="status-bar" role="status">
+            <span class="status-rune" aria-hidden="true"></span>
+            <p id="quickMessage">請先放入一張圖片。</p>
+        </div>
+
+        <div class="quick-grid">
+            <!-- 左：放入圖片 -->
+            <div class="quick-col quick-input">
+                <div class="quick-drop" id="quickDropZone" role="region" aria-label="放入圖片，可以把圖片拖到這裡">
+                    <svg class="drop-art" viewBox="0 0 80 80" width="72" height="72" aria-hidden="true">
+                        <circle cx="40" cy="40" r="35" fill="none" stroke="#a87a3a" stroke-width="2"/>
+                        <circle cx="40" cy="40" r="29" fill="none" stroke="#a87a3a" stroke-width="1" stroke-dasharray="1.5 4"/>
+                        <rect x="24" y="27" width="32" height="26" rx="3" fill="none" stroke="#7a4a22" stroke-width="2.4"/>
+                        <circle cx="49" cy="35" r="3" fill="#b24a22"/>
+                        <path d="M26 51l9-9 7 6 5-4 7 7" fill="none" stroke="#7a4a22" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+                    </svg>
+                    <strong>將圖片拖曳到此處</strong>
+                    <span>或按 Ctrl+V 貼上截圖</span>
+                    <div class="quick-input-actions">
+                        <button id="quickOpen" type="button" class="btn btn-primary">選擇圖片</button>
+                        <button id="quickPaste" type="button" class="btn btn-quiet">貼上圖片</button>
+                    </div>
+                </div>
+                <p class="privacy">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="#ffd94a" stroke="#b9770e" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="#b9770e" stroke-width="2.2" stroke-linecap="round"/></svg>
+                    <span>圖片在瀏覽器內處理，不會自動上傳。</span>
+                </p>
+
+                <div class="quick-output-settings" aria-labelledby="quickOutputSettingsTitle">
+                    <p class="fit-title" id="quickOutputSettingsTitle">輸出設定</p>
+                    <label class="quick-select-line"><span>積木類型</span>
+                        <select id="quickOutputMode" aria-label="快速轉換的積木類型">
+                            <option value="original">標準積木（80 × 80）</option>
+                            <option value="hidden">內建擴充積木（可選解析度）</option>
+                        </select>
+                    </label>
+                    <div id="quickAdvancedOptions" class="quick-advanced-options" hidden>
+                        <label class="quick-select-line"><span>輸出尺寸</span>
+                            <select id="quickResolution" aria-label="快速轉換的輸出解析度">
+                                <option value="80">80 × 80</option>
+                                <option value="100">100 × 100</option>
+                                <option value="160">160 × 160</option>
+                                <option value="200">200 × 200</option>
+                                <option value="400">400 × 400（實驗）</option>
+                            </select>
+                        </label>
+                        <label class="quick-select-line"><span>色彩模式</span>
+                            <select id="quickColorMode" aria-label="快速轉換的色彩模式">
+                                <option value="70">標準 70 色</option>
+                                <option value="256">自適應 256 色</option>
+                                <option value="256-alpha">256 色＋透明度</option>
+                            </select>
+                        </label>
+                        <p class="quick-advanced-hint">使用遊戲內建、武館積木包未提供的字串與列表等積木；可調整尺寸與顏色。</p>
+                    </div>
+                </div>
+
+                <div class="fit-group" role="group" aria-labelledby="fitTitle">
+                    <p class="fit-title" id="fitTitle">圖片不是正方形時</p>
+                    <div class="quick-fit-options">
+                        <button type="button" data-quick-fit="contain" aria-pressed="true" class="quick-fit selected">
+                            <span class="fit-illustration contain" aria-hidden="true"><i></i></span>
+                            <span class="fit-text"><strong>完整保留</strong><small>整張圖放進方框，周圍補透明</small></span>
+                        </button>
+                        <button type="button" data-quick-fit="stretch" aria-pressed="false" class="quick-fit">
+                            <span class="fit-illustration stretch" aria-hidden="true"><i></i></span>
+                            <span class="fit-text"><strong>拉伸填滿</strong><small>填滿整個方框，比例會改變</small></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右：預覽與按鈕 -->
+            <div class="quick-col quick-output">
+                <div class="frame-head">
+                    <strong>預覽</strong>
+                    <span id="quickDimensions">尚未放入圖片</span>
+                </div>
+                <div class="frame-tabs" role="group" aria-label="切換預覽">
+                    <button type="button" class="frame-tab is-active" data-frame-show="source" aria-pressed="true">你的圖片</button>
+                    <button type="button" class="frame-tab" data-frame-show="result" aria-pressed="false">積木效果</button>
+                </div>
+                <div class="frame" id="quickPreviewFrame" data-show="source">
+                    <div class="quick-empty" id="quickEmpty">
+                        <svg viewBox="0 0 100 100" width="84" height="84" aria-hidden="true">
+                            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 5"/>
+                            <polygon points="50,16 79,66 21,66" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <polygon points="50,84 21,34 79,34" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                        <span>尚未放入圖片</span>
+                    </div>
+                    <canvas id="quickPreviewCanvas" width="300" height="230" hidden aria-label="你的圖片預覽"></canvas>
+                    <canvas id="quickResultCanvas" width="80" height="80" aria-label="轉成積木後的樣子"></canvas>
+                </div>
+                <p class="quick-meta">
+                    <span class="quick-output-indicator">輸出：標準積木 80 × 80</span>
+                    <button type="button" id="quickEditImage" class="link-btn">需要修改？前往進階編輯 ›</button>
+                </p>
+            </div>
+        </div>
+
+        <div class="quick-actions" role="group" aria-label="預覽與複製積木碼">
+            <button type="button" class="btn btn-primary btn-xl quick-convert" id="quickConvert">預覽積木效果</button>
+            <span class="quick-action-arrow" aria-hidden="true">→</span>
+            <button type="button" class="btn btn-primary btn-xl quick-copy" id="quickCopy" disabled>複製積木碼</button>
+        </div>
+        <div class="transfer-help-row">
+            <span>複製後不知道怎麼使用？</span>
+            <button type="button" class="transfer-help-trigger" data-open-transfer>如何貼到武館？ <span aria-hidden="true">›</span></button>
+        </div>
+        <details class="fold code-fold quick-xml-fold" id="quickXmlFold">
+            <summary>查看積木程式碼（XML）</summary>
+            <div class="fold-body">
+                <p class="note" id="quickXmlStatus">先預覽積木效果，即可查看完整程式碼。</p>
+                <label class="sr-only" for="quickXmlOutput">積木 原始碼</label>
+                <textarea id="quickXmlOutput" rows="7" readonly spellcheck="false" placeholder="預覽後會顯示積木程式碼"></textarea>
+            </div>
+        </details>
+    </section>
+
+    <!-- ───────── 進階編輯（三步驟） ───────── -->
+    <div class="flow">
+
+        <!-- 步驟 1：準備圖片 -->
+        <section id="step1" class="step panel" aria-labelledby="step1Title">
+            <div class="step-head">
+                <div class="step-title">
+                    <h2 class="ribbon" id="step1Title"><span class="ribbon-num" aria-hidden="true">一</span>準備圖片</h2>
+                    <p>在畫板上畫圖，或加入現成的圖片。</p>
+                </div>
+                <div class="actions">
+                    <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                    <label for="imageUpload" id="addImageLabel" class="btn btn-primary" role="button" tabindex="0" title="從電腦選取圖片，會成為可移動的圖層">加入圖片</label>
+                    <button id="editorPaste" class="btn btn-quiet" title="讀取剪貼簿裡的圖片，也可以直接按 Ctrl+V">貼上</button>
+                    <details id="moreMenu" class="menu">
+                        <summary class="btn">更多</summary>
+                        <div class="menu-list">
+                            <button id="editorNew" type="button">新畫布…</button>
+                            <button id="editorCopyImage" type="button" title="複製畫布上的圖片">複製圖片</button>
+                            <button id="editorSave" type="button">下載 PNG</button>
+                            <hr>
+                            <button id="editorClear" type="button" class="is-danger">清空畫布…</button>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <div class="editor-control-dock" aria-label="畫布操作與尺寸設定">
+                    <div class="view-bar">
+                        <div class="view-group">
+                            <button id="editorUndo" class="btn btn-sm" title="復原（Ctrl+Z）">↶ 復原</button>
+                            <button id="editorRedo" class="btn btn-sm" title="重做（Ctrl+Y）">↷ 重做</button>
+                        </div>
+                        <div class="view-group">
+                            <label class="check pixel-grid-toggle" id="editorGridLabel" title="只顯示編輯畫布的 1 × 1 像素邊界；低於 800% 時暫時隱藏，再放大會自動恢復。"><input id="editorGrid" type="checkbox"> 畫布像素格線 <small id="editorGridZoomHint">800%↑</small></label>
+                            <select id="editorZoom" aria-label="顯示縮放">
+                                <option value="fit">符合視窗</option>
+                                <option value="1">100%</option>
+                                <option value="2">200%</option>
+                                <option value="4">400%</option>
+                                <option value="8">800%</option>
+                                <option value="16">1600%</option>
+                            </select>
+                            <button id="editorFit" class="btn btn-sm">置中</button>
+                        </div>
+                    </div>
+
+                    <details class="canvas-size-details" id="editorCanvasSettings">
+                        <summary><span class="canvas-size-title">畫布大小 <strong id="editorDims">400 × 400</strong> px</span><span class="canvas-hint">調整尺寸與縮放方式</span><span class="canvas-size-chevron" aria-hidden="true">▾</span></summary>
+                    <div class="canvas-size-bar" aria-label="編輯畫布尺寸">
+                        <div class="canvas-size-heading">
+                            <span>畫布尺寸</span>
+                            <span>（編輯時的解析度）</span>
+                        </div>
+                        <div class="canvas-size-shortcuts" aria-label="常用正方形尺寸">
+                            <button type="button" data-canvas-preset="80" title="將編輯畫布改為 80 × 80">80 × 80</button>
+                            <button type="button" data-canvas-preset="200" title="將編輯畫布改為 200 × 200">200 × 200</button>
+                            <button type="button" data-canvas-preset="400" title="將編輯畫布改為 400 × 400">400 × 400</button>
+                            <button id="editorCanvasSizeOpen" type="button" class="canvas-custom-size" title="自訂寬高、比例與畫布固定位置">自訂…</button>
+                        </div>
+                        <label class="canvas-size-mode">套用方式
+                            <select id="editorPresetMode" aria-label="常用尺寸的套用方式">
+                                <option value="image">縮放圖片內容</option>
+                                <option value="canvas">只改畫布邊界</option>
+                            </select>
+                        </label>
+                        <label class="canvas-auto-size" title="空白畫布第一次匯入圖片時，依圖片實際像素寬高建立畫布；若超出尺寸上限會等比例縮小。"><input id="editorAutoCanvas" type="checkbox" checked> 首次加入圖片時，自動符合圖片尺寸</label>
+                        <p class="canvas-size-note">這裡設定編輯空間的大小；積木的輸出解析度請在下一步「輸出設定」選擇。</p>
+                    </div>
+                    </details>
+                    <div id="editorFloatingActions" class="action-strip action-strip-floating" hidden>
+                        <div class="action-strip-status">
+                            <span class="status-icon" aria-hidden="true"></span>
+                            <div>
+                                <strong id="editorFloatingStateTitle">已選取圖片 · 可移動／縮放</strong>
+                                <span id="editorFloatingStateText">拖曳圖片以移動；控制點改變大小。要修改原圖，請按「編輯圖片像素」。</span>
+                            </div>
+                        </div>
+                        <div class="action-strip-tools">
+                            <label class="toggle-pill" title="開啟後維持圖片原比例；關閉後可自由拉長壓扁">
+                                <input id="editorFloatLockInline" type="checkbox">
+                                <span>鎖定原比例</span>
+                            </label>
+                            <button id="editorImagePaint" class="btn btn-sm btn-primary" type="button" title="不必合併到底圖，直接用鉛筆、橡皮擦、填色修改這張圖片">編輯圖片像素</button>
+                            <button id="editorFloatingApply" class="btn btn-sm btn-quiet">完成調整</button>
+                            <button id="editorFloatReset" class="btn btn-sm btn-quiet" type="button" title="還原選取這張圖片時的位置及大小，不影響其他圖層">還原本次調整</button>
+                            <button id="editorFloatRecover" class="btn btn-sm btn-quiet" type="button" title="如果圖片移到畫布外，選取圖層後可不改變大小、直接移回中央">找回圖片</button>
+                            <button id="editorLayerMerge" class="btn btn-sm" title="把這張圖畫進原始畫布，之後不能再單獨移動">合併到畫布</button>
+                            <button id="editorFloatingCancel" class="btn btn-sm is-danger">刪除圖片</button>
+                        </div>
+                    </div>
+            </div>
+
+            <section id="pixelEditor" class="workbench" aria-label="像素畫板">
+
+                <!-- 工具列 -->
+                <nav class="tools" aria-label="繪圖工具">
+                    <div class="tool-group">
+                        <span class="tool-group-label">繪圖</span>
+                        <button type="button" data-tool="pencil" title="鉛筆（P）"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2 2 0 0 1 3 0l0 0a2 2 0 0 1 0 3L8 19z M14.5 6.5l3 3"/></svg><small>鉛筆</small></button>
+                        <button type="button" data-tool="eraser" title="橡皮擦（E）"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16l9-9a2 2 0 0 1 3 0l4 4a2 2 0 0 1 0 3l-6 6H8z M9 10l6 6 M10 20h10"/></svg><small>橡皮擦</small></button>
+                        <button type="button" data-tool="fill" title="油漆桶（G）"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11l6-6 7 7-6 6a2 2 0 0 1-3 0z M12 5L9 2 M20 16c1 1.4 1.6 2.4 1.6 3.3a1.6 1.6 0 0 1-3.2 0c0-.9.6-1.9 1.6-3.3z"/></svg><small>填色</small></button>
+                        <button type="button" data-tool="picker" title="滴管（I）：點畫面取色"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l4 4 M16 4l4 4-2 2-4-4z M13 7l4 4-8 8H5v-4z"/></svg><small>吸色</small></button>
+                    </div>
+                    <div class="tool-group tool-group-shapes">
+                        <span class="tool-group-label">圖案</span>
+                        <details id="editorShapesMenu" class="shape-menu">
+                            <summary class="shape-menu-trigger" aria-label="展開圖案工具" title="選擇直線、矩形、圓、橢圓、箭頭">
+                                <svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="10.5" width="10" height="10" rx="1"/><circle cx="16.5" cy="7" r="4"/><path d="M15 18.5h6"/></svg>
+                                <small>圖案</small><span class="shape-menu-caret" aria-hidden="true">▾</span>
+                            </summary>
+                            <div class="shape-popover">
+                                <div class="shape-popover-top"><strong>選擇圖案</strong><span>拖曳畫出大小</span></div>
+                                <div class="shape-grid">
+                                    <button type="button" data-tool="line" title="直線（L）"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19L19 5"/></svg><small>直線</small></button>
+                                    <button type="button" data-tool="rect" title="空心矩形（R）"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1.5"/></svg><small>矩形框</small></button>
+                                    <button type="button" data-tool="solidRect" title="實心矩形"><svg class="tool-svg is-solid" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1.5"/></svg><small>實心矩形</small></button>
+                                    <button type="button" data-tool="circle" title="圓形：固定 1:1 外框"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><small>圓形</small></button>
+                                    <button type="button" data-tool="ellipse" title="橢圓：可自由決定寬高"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="6"/></svg><small>橢圓</small></button>
+                                    <button type="button" data-tool="arrow" title="箭頭：由起點指向終點"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L20 4M10 4h10v10"/></svg><small>箭頭</small></button>
+                                </div>
+                                <div class="shape-popover-hint">選好後在畫布上拖曳，放開就完成。畫錯可按 Ctrl+Z。</div>
+                            </div>
+                        </details>
+                    </div>
+                    <div class="tool-group">
+                        <span class="tool-group-label">圖片</span>
+                        <button type="button" data-tool="layer" title="調整圖片（V）：移動選取的圖片，拖曳邊框縮放"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l12 7-5.5 1.8L10 18z"/></svg><small>調整圖片</small></button>
+                        <button type="button" data-tool="crop" title="裁切（C）"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v13a2 2 0 0 0 2 2h12 M3 7h13a2 2 0 0 1 2 2v12"/></svg><small>裁切</small></button>
+                        <button type="button" data-tool="hand" title="移動畫面（H）：只移動觀看位置，不改變圖片內容；也可按住空白鍵拖曳"><svg class="tool-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18 M3 12h18 M12 3l-3 3 M12 3l3 3 M12 21l-3-3 M12 21l3-3 M3 12l3-3 M3 12l3 3 M21 12l-3-3 M21 12l-3 3"/></svg><small>移動畫面</small></button>
+                    </div>
+                </nav>
+
+                <!-- 畫布 -->
+                <div class="stage-col">
+                    <div class="editor-workspace" id="editorViewport" tabindex="0" aria-label="像素畫布。背景可拖曳平移。"><div id="editorStage" class="editor-stage"><canvas id="editorCanvas" width="400" height="400"></canvas><canvas id="editorOverlay" width="400" height="400"></canvas></div><canvas id="editorPixelGrid" class="editor-pixel-grid" aria-hidden="true" hidden></canvas></div>
+
+                    <p id="editorNotice" class="editor-notice" role="status" aria-live="polite" hidden></p>
+                    <div class="status">
+                        <span id="editorInfo">400×400｜游標：—</span>
+                        <span id="editorModeLabel" class="tip">鉛筆：拖曳繪製像素</span>
+                    </div>
+
+                    <div id="editorCropActions" class="action-strip" hidden>
+                        <strong>裁切</strong>
+                        <span>保留亮框裡的部分，暗的會被移除。</span>
+                        <button id="editorCropApply" class="btn btn-sm btn-primary" disabled>確認裁切</button>
+                        <button id="editorCropCancel" class="btn btn-sm">取消</button>
+                    </div>
+                    <div class="stage-more" aria-label="其他圖片操作">
+                    <details class="fold editor-stage-fold">
+                        <summary>圖片尺寸與拉伸</summary>
+                        <div class="fold-body">
+                            <button id="editorTransformImage" class="btn btn-sm btn-wide" title="把整張圖變成可拖曳的圖層，用四角拉伸">選取整張圖片，拖曳四角拉伸</button>
+                            <button id="editorImageSizeOpen" class="btn btn-sm btn-wide">指定尺寸縮放圖片…</button>
+                            <p class="note">指定尺寸可縮放整張圖，選取圖片則能在畫布上拖曳拉伸。編輯畫布單邊最多 4096 px。</p>
+                        </div>
+                    </details>
+
+                    <details class="fold editor-stage-fold">
+                        <summary>加入圖片的設定</summary>
+                        <div class="fold-body">
+                            <label class="col-field"><span>從電腦加入或貼上時</span>
+                                <select id="editorPasteMode"><option value="float">成為可移動圖層（預設）</option><option value="replace">取代整張畫布（會先確認）</option></select>
+                            </label>
+                            <p class="note">若啟用「首次加入圖片時，自動符合圖片尺寸」，第一次匯入會調整空白畫布；之後加入圖片不會改變畫布尺寸。</p>
+                            <label class="check"><input id="editorCleanPaste" type="checkbox" checked> 自動去除圖片中的假透明棋盤格</label>
+                        </div>
+                    </details>
+                    </div>
+                </div>
+
+                <!-- 右側設定 -->
+                <aside class="panel-side" aria-label="工具設定">
+                    <details class="fold" id="layersFold">
+                        <summary>圖層管理<span class="badge" id="layersBadge">0</span></summary>
+                        <div id="editorLayersPanel" class="layers-panel">
+                            <div class="layers-head"><span id="editorLayerCount">1 個圖層</span><span>選取圖層後繪製；可調整顯示與順序</span></div>
+                            <button id="editorAddPaintLayer" type="button" class="btn btn-sm btn-wide layer-create">＋ 新增繪圖圖層</button>
+                            <div id="editorLayersList" class="editor-layers-list"></div>
+                            <button id="editorMergeAll" class="btn btn-sm btn-wide">合併所有可見圖層</button>
+                            <p class="note">上面的圖層會蓋住下面的。選取繪圖層就能在那層畫圖；原始畫布也能上下移。可按 Ctrl+Z 復原。</p>
+                        </div>
+                    </details>
+
+                    <select id="editorTool" class="hidden" aria-label="目前工具">
+                        <option value="pencil">鉛筆</option><option value="eraser">橡皮擦</option><option value="fill">油漆桶</option><option value="picker">滴管</option><option value="line">直線</option><option value="rect">矩形框</option><option value="solidRect">實心矩形</option><option value="circle">圓形</option><option value="ellipse">橢圓</option><option value="arrow">箭頭</option><option value="crop">框選裁切</option><option value="hand">平移</option><option value="layer">圖層選取</option>
+                    </select>
+
+                    <div id="editorPaintOptions" class="block">
+                        <div class="block-title">顏色</div>
+                        <div id="editorSwatches" class="editor-swatches" aria-label="常用顏色"></div>
+                        <label class="row-field"><span>自訂顏色</span><input id="editorColor" type="color" value="#202020"></label>
+                        <div class="brush-control" id="editorBrushControl">
+                            <div class="brush-heading">
+                                <label for="editorBrushRange">筆刷大小</label>
+                                <div class="brush-number"><input id="editorBrush" type="number" min="1" max="64" step="1" value="1" aria-label="筆刷大小（像素）"><span>px</span></div>
+                            </div>
+                            <input id="editorBrushRange" type="range" min="1" max="64" step="1" value="1" aria-label="拖曳調整鉛筆或橡皮擦大小">
+                            <div class="brush-scale" aria-hidden="true"><span>1</span><span>64</span></div>
+                        </div>
+                        <details class="mini">
+                            <summary>進階：半透明</summary>
+                            <label class="row-field"><span>不透明度<small>0–255</small></span><input id="editorAlpha" type="number" min="0" max="255" value="255"></label>
+                        </details>
+                    </div>
+
+                    <div id="editorShapeOptions" class="block" hidden>
+                        <div class="block-title"><span id="editorShapeSelectedLabel">圖案設定</span></div>
+                        <label class="check"><input type="checkbox" id="editorShapeFilled"> 填滿圓形／橢圓</label>
+                        <p class="note">圖案會畫在目前的繪圖層上；可從「圖層管理」切換。</p>
+                    </div>
+
+                    <div id="editorCropOptions" class="block" hidden>
+                        <div class="block-title">裁切範圍</div>
+                        <p id="editorCropReadout" class="readout">尚未選取範圍</p>
+                        <label class="col-field"><span>固定比例</span>
+                            <select id="editorCropRatio"><option value="free">自由</option><option value="1">1:1 正方形</option><option value="1.3333333333">4:3</option><option value="1.7777777778">16:9</option></select>
+                        </label>
+                        <p class="note">在畫布上拖曳框出範圍；框外的部分會被刪除。</p>
+                        <button id="editorCropStart" class="btn btn-sm">重選範圍</button>
+                    </div>
+
+                    <details id="editorFloatOptions" class="fold float-options" hidden open>
+                        <summary>這張圖片</summary>
+                        <div class="fold-body float-options-body">
+                        <p id="editorFloatSource" class="note">來源解析度：—</p>
+                        <div class="float-grid">
+                            <label>X <input id="editorFloatX" type="number" step="1"></label>
+                            <label>Y <input id="editorFloatY" type="number" step="1"></label>
+                            <label>寬 <input id="editorFloatW" type="number" min="1" step="1"></label>
+                            <label>高 <input id="editorFloatH" type="number" min="1" step="1"></label>
+                        </div>
+                        <label class="check"><input id="editorFloatLock" type="checkbox"> 鎖定原比例<small>預設可自由拉伸；勾選後保持寬高比例</small></label>
+                        <button id="editorFloatFit" class="btn btn-sm">縮放到剛好放進畫布</button>
+                        <button id="editorCleanLayer" class="btn btn-sm" title="移除圖片裡被存成像素的灰白棋盤格">去除棋盤格背景</button>
+                        <p id="editorCleanNote" class="note">只處理圖片中真的存在的灰白格；畫板的透明格紋本來就不會輸出。</p>
+                        </div>
+                    </details>
+
+                </aside>
+            </section>
+
+            <div class="cta-bar">
+                <p>完成編輯後預覽積木效果，確認後即可複製。</p>
+                <button id="editorApply" class="btn btn-primary btn-xl">預覽積木效果 ↓</button>
+            </div>
+        </section>
+
+        <!-- 步驟 2：確認結果、選擇輸出方式 -->
+        <section id="step2" class="step panel" aria-labelledby="step2Title">
+            <div class="step-head">
+                <div class="step-title">
+                    <h2 class="ribbon" id="step2Title"><span class="ribbon-num" aria-hidden="true">二</span>積木預覽與輸出設定</h2>
+                    <p>一般情況使用「標準積木」即可。圖片不是正方形時，可選擇拉伸，或完整保留並補透明。</p>
+                </div>
+                <button id="editorApplyBelow" class="btn" title="如果在預覽後又修改圖片，按此重新取得最新結果。色彩、解析度等選項改變時會自動更新。">重新預覽目前畫布</button>
+            </div>
+
+            <div class="convert-grid">
+                <div id="dropArea" class="previews">
+                    <div class="preview-pair">
+                        <figure>
+                            <canvas id="imageCanvas" class="pixelated-canvas" width="80" height="80"></canvas>
+                            <figcaption>你的圖片<small>縮放到輸出尺寸</small></figcaption>
+                        </figure>
+                        <span class="arrow" aria-hidden="true">→</span>
+                        <figure>
+                            <canvas id="previewCanvas" class="pixelated-canvas" width="80" height="80"></canvas>
+                            <figcaption>積木顏色<small>實際會用到的顏色</small></figcaption>
+                        </figure>
+                    </div>
+                    <p id="canvasMessage" class="status-line" role="status"></p>
+                </div>
+
+                <div class="settings">
+                    <div class="mode-cards" role="group" aria-label="輸出方式">
+                        <button type="button" class="mode-card selected" data-mode-card="original" aria-pressed="true">
+                            <strong>標準積木<small>模式 A</small></strong>
+                            <span>使用武館積木包積木，固定 80×80、70 色；圖片複雜時可能較慢。</span>
+                            <em>武館積木包・相容優先</em>
+                        </button>
+                        <button type="button" class="mode-card" data-mode-card="hidden" aria-pressed="false">
+                            <strong>內建擴充積木<small>模式 B</small></strong>
+                            <span>使用遊戲已實作的字串、列表等積木；尺寸、色彩可調，積木通常較少。</span>
+                            <em>遊戲內建・積木包未提供</em>
+                        </button>
+                    </div>
+
+                    <select id="outputMode" class="hidden" aria-label="輸出模式">
+                        <option value="original">模式 A：標準積木（武館積木包）</option>
+                        <option value="hidden">模式 B：內建擴充積木（字串 / 列表）</option>
+                    </select>
+
+                    <div id="modeBOptions" class="mode-b" hidden>
+                        <label class="col-field"><span>解析度</span>
+                            <select id="resolution" disabled>
+                                <option value="80">80 × 80</option>
+                                <option value="100">100 × 100</option>
+                                <option value="160">160 × 160</option>
+                                <option value="200">200 × 200</option>
+                                <option value="400">400 × 400（實驗）</option>
+                            </select>
+                        </label>
+                        <label class="col-field"><span>色彩</span>
+                            <select id="colorMode" disabled>
+                                <option value="70">標準 70 色</option>
+                                <option value="256">高彩 256 色</option>
+                                <option value="256-alpha">高彩 256 色＋透明度</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <label class="col-field output-fit-field"><span>非正方形圖片的輸出方式</span>
+                        <select id="outputFitMode" aria-label="非正方形圖片輸出方式">
+                            <option value="stretch">拉伸填滿正方形</option>
+                            <option value="contain" selected>完整保留，置中補透明</option>
+                        </select>
+                    </label>
+
+                    <p id="resolutionHint" class="hint"></p>
+
+                    <details class="fold">
+                        <summary>顏色漸層平滑度（抖動）<span id="ditherStrengthValue" class="dither-percent">0%</span></summary>
+                        <div class="fold-body">
+                            <input type="range" id="ditherStrength" min="0" max="100" value="0" aria-label="抖動程度">
+                            <p class="note">0% 顏色分明，適合像素畫；數字越大漸層越平滑，適合照片。100% 是完整的 Floyd-Steinberg 抖動。</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- 步驟 3：複製積木碼 -->
+        <section id="step3" class="step panel" aria-labelledby="step3Title">
+            <div class="step-head">
+                <div class="step-title">
+                    <h2 class="ribbon" id="step3Title"><span class="ribbon-num" aria-hidden="true">三</span>複製積木碼</h2>
+                    <p>複製後貼到 E-game 使用。</p>
+                </div>
+            </div>
+            <p id="outputStats" class="stats"></p>
+            <div class="copy-row">
+                <button id="copyButton" class="btn btn-primary btn-xl" disabled>複製積木碼</button>
+                <span class="copy-hint">完成轉換後才能複製。</span>
+                <button type="button" class="transfer-help-trigger" data-open-transfer>如何貼到武館？ <span aria-hidden="true">›</span></button>
+            </div>
+            <details class="fold code-fold">
+                <summary>查看積木程式碼（XML）</summary>
+                <div class="fold-body">
+                    <label for="blocklyXmlOutput" class="sr-only">產生的積木 XML</label>
+                    <textarea id="blocklyXmlOutput" rows="6" readonly></textarea>
+                </div>
+            </details>
+        </section>
+    </div>
+
+    <footer class="app-foot">
+        <div class="foot-card">
+            <p class="project-credit"><span class="ver">v0.10.8</span>非官方 E-game 輔助工具，改作自 Hello Bug（GitHub：wangicheng）的 <a href="https://github.com/wangicheng/egame-image-to-blocks" rel="noopener noreferrer" target="_blank">egame-image-to-blocks</a>，沿用原專案的 <a href="https://github.com/wangicheng/egame-image-to-blocks/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT 授權</a>。</p>
+            <p class="usage-disclaimer"><strong>使用與免責聲明</strong><span>本工具僅供圖片編輯及積木轉換，與 E-game 官方無關。請遵守武館規範，勿用於製作或發布不雅、侮辱、騷擾等不當內容。武館作品及發布行為由使用者自行負責；遊戲或瀏覽器更新可能影響部分功能。</span></p>
+            <details class="fold fold-plain">
+                <summary>鍵盤快捷鍵</summary>
+                <ul class="keys">
+                    <li><kbd>P</kbd> 鉛筆</li><li><kbd>E</kbd> 橡皮擦</li><li><kbd>G</kbd> 填色</li><li><kbd>I</kbd> 吸色</li>
+                    <li><kbd>L</kbd> 直線</li><li><kbd>R</kbd> 空心矩形</li><li><kbd>O</kbd> 圓形</li><li><kbd>U</kbd> 橢圓</li><li><kbd>A</kbd> 箭頭</li><li><kbd>C</kbd> 裁切</li><li><kbd>H</kbd> 移動畫面</li>
+                    <li><kbd>V</kbd> 調整圖片</li><li><kbd>Ctrl</kbd>+<kbd>Z</kbd> 復原</li><li><kbd>Ctrl</kbd>+<kbd>Y</kbd> 重做</li><li><kbd>Ctrl</kbd>+<kbd>V</kbd> 貼上圖片</li>
+                    <li><span class="key-chord"><kbd>方向鍵</kbd></span><span>移動圖片 1 格</span></li><li><span class="key-chord"><kbd>Shift</kbd> + <kbd>方向鍵</kbd></span><span>移動圖片 10 格</span></li><li><kbd>空白鍵</kbd> 按住拖曳畫面</li><li><kbd>Esc</kbd> 取消選取</li>
+                </ul>
+            </details>
+        </div>
+    </footer>
+</main>
+
+<!-- 縮放／新畫布對話框 -->
+<div class="editor-modal-backdrop" id="editorSizeDialog" hidden>
+    <div class="editor-modal" role="dialog" aria-modal="true" aria-labelledby="editorDialogTitle">
+        <h3 id="editorDialogTitle">調整圖片大小</h3>
+        <p id="editorDialogHelp">此操作會縮放圖片內容。</p>
+        <div class="editor-dimensions">
+            <label>寬度 (px)<input id="editorWidth" type="number" min="1" max="4096" value="80"></label>
+            <label>高度 (px)<input id="editorHeight" type="number" min="1" max="4096" value="80"></label>
+        </div>
+        <div class="editor-ratio-chooser" aria-label="快速比例">
+            <span>比例</span>
+            <button type="button" data-dialog-ratio="original">原比例</button>
+            <button type="button" data-dialog-ratio="1">1:1</button>
+            <button type="button" data-dialog-ratio="1.3333333333">4:3</button>
+            <button type="button" data-dialog-ratio="1.7777777778">16:9</button>
+            <button type="button" data-dialog-ratio="free">自由</button>
+        </div>
+        <div class="editor-ratio-chooser">
+            <span>尺寸</span>
+            <button type="button" data-dialog-size="80">80 × 80</button>
+            <button type="button" data-dialog-size="200">200 × 200</button>
+            <button type="button" data-dialog-size="400">400 × 400</button>
+        </div>
+        <label class="editor-check"><input id="editorLockRatio" type="checkbox" checked> 變更寬高時保持比例</label>
+        <div class="editor-size-preview">
+            <div><strong>目前</strong><canvas id="editorSizeBefore" width="192" height="128" aria-label="原始畫布的縮圖"></canvas></div>
+            <div><strong>調整後</strong><canvas id="editorSizeAfter" width="192" height="128" aria-label="調整後的縮圖"></canvas></div>
+        </div>
+        <p class="editor-preview-tip" id="editorPreviewTip">圖像縮放會改變像素內容。</p>
+        <label id="editorSamplingWrap">縮放方式
+            <select id="editorSampling"><option value="nearest">最近鄰（像素畫）</option><option value="smooth">平滑（照片）</option></select>
+        </label>
+        <label id="editorAnchorWrap" hidden>畫布固定位置
+            <select id="editorAnchor"><option value="center">置中</option><option value="top-left">左上角</option></select>
+        </label>
+        <div class="editor-modal-actions">
+            <button id="editorDialogCancel" class="btn">取消</button>
+            <button id="editorDialogApply" class="btn btn-primary">套用</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- 三種貼上方式只在使用者需要時顯示；快速和進階模式共用同一份教學。 -->
+<div class="transfer-backdrop" id="transferGuide" hidden>
+    <section class="transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="transferTitle" tabindex="-1">
+        <div class="transfer-dialog-head">
+            <div>
+                <p class="transfer-eyebrow">積木匯入指南</p>
+                <h2 id="transferTitle">如何貼到 E-game 武館？</h2>
+            </div>
+            <button type="button" class="transfer-close" id="transferClose" aria-label="關閉教學">×</button>
+        </div>
+        <div class="transfer-dialog-inner">
+            <p class="transfer-intro">本網站可以產生積木碼，但武館原本沒有直接貼上積木碼的按鈕。請選擇一種匯入方式。</p>
+            <div class="transfer-methods" role="tablist" aria-label="貼上積木的方法">
+                <button type="button" id="transferTabTools" class="transfer-method is-active" role="tab" aria-selected="true" aria-controls="transferPanelTools" data-transfer-method="tools">
+                    <strong>積木工具包</strong><span>推薦・經常使用</span>
+                </button>
+                <button type="button" id="transferTabConsole" class="transfer-method" role="tab" aria-selected="false" aria-controls="transferPanelConsole" data-transfer-method="console" tabindex="-1">
+                    <strong>控制台匯入</strong><span>免安裝・直接執行</span>
+                </button>
+                <button type="button" id="transferTabBookmark" class="transfer-method" role="tab" aria-selected="false" aria-controls="transferPanelBookmark" data-transfer-method="bookmark" tabindex="-1">
+                    <strong>一鍵貼上書籤</strong><span>免安裝・設定一次</span>
+                </button>
+            </div>
+            <div id="transferPanelTools" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabTools" data-transfer-panel="tools">
+                <div class="transfer-tool-options" aria-label="選擇積木貼上工具">
+                    <div class="transfer-tool-option">
+                        <span class="transfer-tool-tag">推薦</span>
+                        <a href="https://github.com/qert15376-code/egame-copy-paste" target="_blank" rel="noopener noreferrer">E-game 積木工具（精簡版）</a>
+                        <span>提供積木複製、貼上及加速功能</span>
+                    </div>
+                    <div class="transfer-tool-option">
+                        <span class="transfer-tool-tag transfer-tool-tag-alt">其他選擇</span>
+                        <a href="https://github.com/wangicheng/egame-tools" target="_blank" rel="noopener noreferrer">E-game Tools 完整工具包</a>
+                        <span>Hello Bug（wangicheng）開發，提供更多武館輔助功能，但部分功能目前已失效。</span>
+                    </div>
+                </div>
+                <ol class="transfer-steps">
+                    <li>選擇上方其中一款工具，依照 GitHub 的說明安裝並啟用。</li>
+                    <li>在本網站完成預覽，按「複製積木碼」。</li>
+                    <li>開啟 E-game 武館的積木編輯畫面，點擊工具提供的「貼上」按鈕。</li>
+                    <li>貼上後可按「執行」或「加速」繪圖，確認結果後再儲存武館。</li>
+                </ol>
+                <button type="button" class="btn btn-primary transfer-action" id="transferCopyXml" disabled>複製積木碼</button>
+                <p class="transfer-note">工具需另行安裝。標準積木的繪圖指令較多，建議使用「加速」功能。Ctrl+V 可在本網站貼上圖片，但無法直接將積木碼貼進原版武館。</p>
+            </div>
+            <div id="transferPanelConsole" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabConsole" data-transfer-panel="console" hidden>
+                <ol class="transfer-steps">
+                    <li>先在本網站按「預覽積木效果」，產生積木碼。</li>
+                    <li>按下方「複製匯入指令」。指令會包含這次的積木，不必重新複製積木碼。</li>
+                    <li>開啟武館積木編輯畫面，按 <kbd>F12</kbd>，選擇 <strong>Console（控制台）</strong>。</li>
+                    <li>按 <kbd>Ctrl</kbd> + <kbd>V</kbd> 貼上，再按 <kbd>Enter</kbd> 執行。</li>
+                    <li>確認積木出現後儲存。建議先在空白工作區使用，避免重複匯入。</li>
+                </ol>
+                <button type="button" class="btn btn-primary transfer-action" id="transferCopyConsole" disabled>複製匯入指令</button>
+                <p class="transfer-note">程式不會讀取剪貼簿；它直接包含目前產生的積木資料。瀏覽器可能阻止貼上指令，請只執行自己信任的程式。</p>
+            </div>
+            <div id="transferPanelBookmark" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabBookmark" data-transfer-panel="bookmark" hidden>
+                <ol class="transfer-steps">
+                    <li>在 Chrome 網址列輸入 <code>chrome://bookmarks/</code>，開啟書籤管理員。</li>
+                    <li>新增書籤：名稱填「貼上武館積木」，網址填入下方複製的書籤程式。</li>
+                    <li>以後只要在本網站按「複製積木碼」，回到武館積木編輯頁面，點這個書籤。</li>
+                    <li>若無法自動讀取剪貼簿，依提示手動貼上積木碼；成功後記得儲存。</li>
+                </ol>
+                <button type="button" class="btn btn-primary transfer-action" id="transferCopyBookmark">複製書籤程式</button>
+                <p class="transfer-note">首次使用時，瀏覽器可能要求允許讀取剪貼簿。若無法自動貼上，可以依照提示手動貼上積木碼。</p>
+            </div>
+            <div class="transfer-status" id="transferStatus" role="status" aria-live="polite">完成積木預覽後，即可複製需要的內容。</div>
+            <p class="transfer-footnote">標準積木使用武館積木包中的積木，但複雜圖片可能執行緩慢；內建擴充積木使用遊戲已實作、但積木包未提供的類型。三種方式都只會加入積木，不會自動儲存。</p>
+        </div>
+    </section>
+</div>
+
+<div id="messageBox" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="script.js" defer></script>
+<script src="background-cleaner.js" defer></script>
+<script src="pixel-editor.js" defer></script>
+<script src="ui.js" defer></script>
+<script src="quick-ui.js" defer></script>
+<script src="game-ui.js" defer></script>
+<script src="transfer-guide.js" defer></script>
+</body>
+</html>
