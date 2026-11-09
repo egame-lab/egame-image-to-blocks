@@ -170,26 +170,45 @@ function rgba(){const v=color.value;return [parseInt(v.slice(1,3),16),parseInt(v
 // Each pixel is overwritten with its requested RGBA value. Transparent strokes do not accumulate Alpha.
 function pixel(x,y,erase=false,width){const size=width??clamp(+brush.value||1,1,64),left=x-Math.floor((size-1)/2),top=y-Math.floor((size-1)/2);paintCtx.clearRect(left,top,size,size);if(!erase){const c=rgba();if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(left,top,size,size);}}}
 function line(a,b,erase=false,width){a=bounded(a);b=bounded(b);let x=a.x,y=a.y,dx=Math.abs(b.x-x),dy=Math.abs(b.y-y),sx=x<b.x?1:-1,sy=y<b.y?1:-1,err=dx-dy;for(;;){pixel(x,y,erase,width);if(x===b.x&&y===b.y)break;const e2=2*err;if(e2>-dy){err-=dy;x+=sx;}if(e2<dx){err+=dx;y+=sy;}}}
-// Small outlines must remain identifiable even if the selected brush is larger
-// than the shape itself. The ordinary pencil/eraser always use the full brush.
-function shapeWidth(span,fraction=.28){return Math.max(1,Math.min(clamp(+brush.value||1,1,64),Math.floor(Math.max(1,span)*fraction)));}
+// All geometric shapes use path geometry (rather than square pixel stamps).
+// Cap an extreme brush relative to the SHORT side; otherwise the hole of a
+// circle/ellipse disappears and a short arrow becomes an indistinct blob.
+function shapeWidth(span,fraction=.19){
+  return Math.max(1,Math.min(clamp(+brush.value||1,1,64),Math.max(1,span*fraction)));
+}
+function shapePath(path,width=1,solid=false){
+  const c=rgba();
+  paintCtx.save();
+  paintCtx.lineWidth=width;
+  paintCtx.lineCap='round';
+  paintCtx.lineJoin='round';
+  // Replace covered pixels rather than alpha-blending over the old drawing.
+  // A single Path2D also avoids over-darkening the joints of the arrow head.
+  paintCtx.globalCompositeOperation='destination-out';
+  paintCtx.strokeStyle='#000';paintCtx.fillStyle='#000';
+  if(solid)paintCtx.fill(path);else paintCtx.stroke(path);
+  if(c[3]){
+    paintCtx.globalCompositeOperation='source-over';
+    paintCtx.strokeStyle=paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;
+    if(solid)paintCtx.fill(path);else paintCtx.stroke(path);
+  }
+  paintCtx.restore();
+}
 function rect(a,b,solid=false){
   a=bounded(a);b=bounded(b);
   const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),r=Math.max(a.x,b.x),bottom=Math.max(a.y,b.y);
+  const w=r-x+1,h=bottom-y+1;
   if(solid){
-    // O(1) canvas operations, rather than one pixel-stamp per cell per row.
-    // The solid rectangle is independent of the hidden brush-size control.
-    const w=r-x+1,h=bottom-y+1,c=rgba();
-    paintCtx.clearRect(x,y,w,h);
+    const c=rgba();paintCtx.clearRect(x,y,w,h);
     if(c[3]){paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;paintCtx.fillRect(x,y,w,h);}
-  }else{
-    const width=shapeWidth(Math.min(r-x+1,bottom-y+1));
-    line({x,y},{x:r,y},false,width);line({x,y:bottom},{x:r,y:bottom},false,width);
-    line({x,y},{x,y:bottom},false,width);line({x:r,y},{x:r,y:bottom},false,width);
+    return;
   }
+  const width=shapeWidth(Math.min(w,h));
+  const path=new Path2D();
+  if(w<=1||h<=1){path.moveTo(x+.5,y+.5);path.lineTo(r+.5,bottom+.5);}
+  else path.rect(x+width/2,y+width/2,Math.max(0,w-width),Math.max(0,h-width));
+  shapePath(path,width);
 }
-// Raster shape tools: drawn in the base bitmap, with drag preview restored from a
-// saved image on every move. Keeping pixel operations central preserves alpha and undo.
 const shapeNames={line:'直線',rect:'矩形框',solidRect:'實心矩形',circle:'圓形',ellipse:'橢圓',arrow:'箭頭'};
 const isShapeTool=value=>Object.prototype.hasOwnProperty.call(shapeNames,value);
 function circleEnd(a,b){
@@ -200,49 +219,98 @@ function ellipseRaster(a,b,solid=false){
   a=bounded(a);b=bounded(b);
   const x0=Math.min(a.x,b.x),x1=Math.max(a.x,b.x),y0=Math.min(a.y,b.y),y1=Math.max(a.y,b.y);
   const w=x1-x0+1,h=y1-y0+1;
-  if(w===1||h===1){line({x:x0,y:y0},{x:x1,y:y1},false,shapeWidth(Math.min(w,h)));return;}
-  const cx=(x0+x1)/2,cy=(y0+y1)/2,rx=(x1-x0)/2,ry=(y1-y0)/2;
-  // A row-based elliptical annulus avoids the squared-off silhouette caused
-  // by stamping large square brushes along a circular path. Its OUTER ellipse
-  // stays inside the bounds selected by the user. The stroke is inset.
   const width=solid?0:shapeWidth(Math.min(w,h));
-  const innerRx=Math.max(0,rx-width),innerRy=Math.max(0,ry-width);
-  const c=rgba();
-  if(c[3])paintCtx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${c[3]/255})`;
-  function span(x,width,y){if(width<=0)return;paintCtx.clearRect(x,y,width,1);if(c[3])paintCtx.fillRect(x,y,width,1);}
-  for(let y=y0;y<=y1;y++){
-    const norm=(y-cy)/ry,reach=rx*Math.sqrt(Math.max(0,1-norm*norm));
-    const left=Math.max(x0,Math.ceil(cx-reach)),right=Math.min(x1,Math.floor(cx+reach));
-    if(left>right){span(Math.round(cx),1,y);continue;}
-    if(solid||innerRx<=0||innerRy<=0||Math.abs(y-cy)>=innerRy){span(left,right-left+1,y);continue;}
-    const inReach=innerRx*Math.sqrt(Math.max(0,1-Math.pow((y-cy)/innerRy,2)));
-    const innerLeft=Math.ceil(cx-inReach),innerRight=Math.floor(cx+inReach);
-    span(left,Math.max(0,Math.min(right+1,innerLeft)-left),y);
-    span(Math.max(left,innerRight+1),right-Math.max(left,innerRight+1)+1,y);
-  }
+  const cx=(x0+x1+1)/2,cy=(y0+y1+1)/2;
+  const rx=Math.max(.5,(w-width)/2),ry=Math.max(.5,(h-width)/2);
+  const path=new Path2D();
+  if(w<=1||h<=1){path.moveTo(x0+.5,y0+.5);path.lineTo(x1+.5,y1+.5);shapePath(path,1);return;}
+  path.ellipse(cx,cy,solid?w/2:rx,solid?h/2:ry,0,0,Math.PI*2);
+  shapePath(path,Math.max(1,width),solid);
 }
 function arrowRaster(a,b){
   a=bounded(a);b=bounded(b);
   const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
-  // An arrow head must be several stroke-widths long to remain visible.
-  // Limit the width for short arrows instead of allowing the shaft to swallow
-  // both head strokes and look like a diagonal bar.
   const width=shapeWidth(Math.max(1,length),.075);
-  line(a,b,false,width);
-  if(length<2)return;
-  const headLen=Math.min(length*.38,Math.max(4,Math.min(36,length*.28),width*3));
-  const angle=Math.atan2(dy,dx),spread=Math.PI/5;
+  if(length<2){const path=new Path2D();path.moveTo(a.x+.5,a.y+.5);path.lineTo(a.x+.501,a.y+.501);shapePath(path,1);return;}
+  // Arrow head and shaft are ONE stroked path to avoid thick overlapping ends.
+  // Head width is proportional to arrow length, not the brush-size setting.
+  const headLen=Math.min(length*.36,Math.max(width*4,length*.30));
+  const angle=Math.atan2(dy,dx),spread=Math.PI/6;
+  const x=b.x+.5,y=b.y+.5,path=new Path2D();
+  path.moveTo(a.x+.5,a.y+.5);path.lineTo(x,y);
   for(const dir of [-1,1]){
     const theta=angle+Math.PI+dir*spread;
-    line(b,{x:Math.round(b.x+headLen*Math.cos(theta)),y:Math.round(b.y+headLen*Math.sin(theta))},false,width);
+    path.moveTo(x+headLen*Math.cos(theta),y+headLen*Math.sin(theta));
+    path.lineTo(x,y);
   }
+  shapePath(path,width);
 }
 function drawShape(value,a,b){
-  if(value==='line')line(a,b);
+  if(value==='line'){
+    const path=new Path2D();path.moveTo(a.x+.5,a.y+.5);path.lineTo(b.x+.5,b.y+.5);
+    shapePath(path,clamp(+brush.value||1,1,64));
+  }
   else if(value==='rect'||value==='solidRect')rect(a,b,value==='solidRect');
   else if(value==='circle')ellipseRaster(a,circleEnd(a,b),$('editorShapeFilled').checked);
   else if(value==='ellipse')ellipseRaster(a,b,$('editorShapeFilled').checked);
   else if(value==='arrow')arrowRaster(a,b);
+}
+// During drag, preserve the real painting canvas. Preview in a separate canvas;
+// commit the geometry once on pointerup. GPU canvas-to-canvas copies replace
+// the previous full-resolution putImageData() in every pointermove event.
+function makeShapePreview(){
+  const source=paintCtx.canvas;
+  const preview=document.createElement('canvas');preview.width=source.width;preview.height=source.height;
+  const g=preview.getContext('2d');g.drawImage(source,0,0);
+  g.setTransform(paintCtx.getTransform());
+  return {canvas:preview,ctx:g,source,transform:paintCtx.getTransform(),lastBounds:null};
+}
+// Conservative bounding box of the geometry; arrows can extend perpendicular
+// to their travel direction, so reserve a larger margin for the arrowhead.
+function shapePreviewBounds(i,v){
+  const a=i.start,b=i.tool==='circle'?circleEnd(i.start,i.current):i.current;
+  const margin=Math.ceil(i.tool==='arrow'?Math.hypot(b.x-a.x,b.y-a.y)*.40+5:clamp(+brush.value||1,1,64)+5);
+  const x0=Math.min(a.x,b.x)-margin,y0=Math.min(a.y,b.y)-margin;
+  const x1=Math.max(a.x,b.x)+margin+1,y1=Math.max(a.y,b.y)+margin+1;
+  const world={x:Math.max(0,Math.floor(x0)),y:Math.max(0,Math.floor(y0)),
+    r:Math.min(canvas.width,Math.ceil(x1)),b:Math.min(canvas.height,Math.ceil(y1))};
+  const local={x:Math.max(0,Math.floor(x0+v.transform.e)),y:Math.max(0,Math.floor(y0+v.transform.f)),
+    r:Math.min(v.canvas.width,Math.ceil(x1+v.transform.e)),b:Math.min(v.canvas.height,Math.ceil(y1+v.transform.f))};
+  return {world,local};
+}
+function unionShapeBounds(a,b){
+  if(!a)return b;if(!b)return a;
+  return {x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),r:Math.max(a.r,b.r),b:Math.max(a.b,b.b)};
+}
+let shapeFrame=0;
+function previewShape(i){
+  if(interaction!==i||i.kind!=='draw'||!i.preview)return;
+  const v=i.preview,g=v.ctx;
+  // Restore just the previous footprint; do NOT recopy the whole bitmap.
+  if(v.lastBounds){
+    const r=v.lastBounds.local;
+    if(r.r>r.x&&r.b>r.y){
+      g.save();g.setTransform(1,0,0,1,0,0);
+      g.clearRect(r.x,r.y,r.r-r.x,r.b-r.y);
+      g.drawImage(v.source,r.x,r.y,r.r-r.x,r.b-r.y,r.x,r.y,r.r-r.x,r.b-r.y);
+      g.restore();
+    }
+  }
+  const bounds=shapePreviewBounds(i,v);
+  const original=paintCtx;paintCtx=g;
+  try{drawShape(i.tool,i.start,i.current);}finally{paintCtx=original;}
+  const dirty=unionShapeBounds(v.lastBounds?.world,bounds.world);
+  v.lastBounds=bounds;
+  if(dirty.r>dirty.x&&dirty.b>dirty.y)drawOverlay(dirty);
+}
+function queueShapePreview(i){
+  if(shapeFrame)return;
+  shapeFrame=requestAnimationFrame(()=>{shapeFrame=0;previewShape(i);});
+}
+function finishShapePreview(i){
+  if(shapeFrame){cancelAnimationFrame(shapeFrame);shapeFrame=0;}
+  drawShape(i.tool,i.start,i.current);
+  i.preview=null;
 }
 // A flood-fill click on a pixel that already has the chosen RGBA value is
 // not an edit. In particular, it must not discard a pending Ctrl+Y redo step.
@@ -370,8 +438,26 @@ function setTool(value){
 }
 
 function selectLayer(layer){initialFloatTransform={id:layer.id,x:layer.x,y:layer.y,w:layer.w,h:layer.h};activePaintId=null;refreshPaintCtx();floating=layer;tool.value='layer';selection=null;syncButtons();syncFloatFields();drawOverlay();}
-function drawOverlay(){ox.clearRect(0,0,overlay.width,overlay.height);
-  ox.save();ox.imageSmoothingEnabled=false;for(const layer of getStack()){if(layer.isBase){if(baseVisible)ox.drawImage(canvas,0,0);}else if(visible(layer))ox.drawImage(layer.image,layer.x,layer.y,layer.w,layer.h);}ox.restore();
+function drawOverlay(dirty){
+  if(dirty){
+    // Clip the composite to the changed region AND the visible viewport.
+    // Big bitmaps are no longer repainted in full on every drag frame.
+    const left=Math.max(dirty.x,Math.floor(-panX/scale));
+    const top=Math.max(dirty.y,Math.floor(-panY/scale));
+    const right=Math.min(dirty.r,Math.ceil((viewport.clientWidth-panX)/scale));
+    const bottom=Math.min(dirty.b,Math.ceil((viewport.clientHeight-panY)/scale));
+    if(right<=left||bottom<=top)return;
+    ox.save();ox.beginPath();ox.rect(left,top,right-left,bottom-top);ox.clip();
+    ox.clearRect(left,top,right-left,bottom-top);
+  }else ox.clearRect(0,0,overlay.width,overlay.height);
+  ox.save();ox.imageSmoothingEnabled=false;
+  const preview=interaction?.kind==='draw'&&interaction.preview?.canvas;
+  const src=interaction?.preview?.source;
+  for(const layer of getStack()){
+    if(layer.isBase){if(baseVisible)ox.drawImage(preview&&src===canvas?preview:canvas,0,0);}
+    else if(visible(layer))ox.drawImage(preview&&src===layer.image?preview:layer.image,layer.x,layer.y,layer.w,layer.h);
+  }
+  ox.restore();
   if(selection&&tool.value==='crop'){
     ox.save();ox.fillStyle='rgba(12,24,40,.55)';
     // The overlay canvas also contains the composited image. Never clear the crop
@@ -394,6 +480,7 @@ function drawOverlay(){ox.clearRect(0,0,overlay.width,overlay.height);
     const handles=[[floating.x,floating.y],[mx,floating.y],[floating.x+floating.w,floating.y],[floating.x+floating.w,my],[floating.x+floating.w,floating.y+floating.h],[mx,floating.y+floating.h],[floating.x,floating.y+floating.h],[floating.x,my]];
     for(const [x,y] of handles){ox.fillStyle='#fff3d6';ox.strokeStyle='#6b371a';ox.lineWidth=1.5/scale;ox.fillRect(x-n/2,y-n/2,n,n);ox.strokeRect(x-n/2,y-n/2,n,n);}
     ox.restore();}
+  if(dirty)ox.restore();
 }
 function refreshInfo(p){$('editorInfo').textContent=`${canvas.width}×${canvas.height}｜${Math.round(scale*100)}%｜游標：${p&&pointInside(p)?`${p.x}, ${p.y}`:'—'}${dirty?'｜尚未轉換':''}`;}
 function prepareDraw(e){const p=getPixelPos(e);if(!pointInside(p))return;if(tool.value==='picker'){pick(p);return;}if(tool.value==='crop'){
@@ -417,7 +504,7 @@ function prepareDraw(e){const p=getPixelPos(e);if(!pointInside(p))return;if(tool
   if(activePaint() && !visible(activePaint()))activePaint().visible=true;
   if(activePaintId===null&&!baseOrderManual)baseOrder=layers.length;
   if(tool.value==='fill'){fill(p);syncButtons();refreshInfo(p);return;}
-  interaction={kind:'draw',tool:tool.value,start:p,last:p,snapshot:isShapeTool(tool.value)?getState():null};overlay.setPointerCapture(e.pointerId);
+  interaction={kind:'draw',tool:tool.value,start:p,last:p,current:p,preview:isShapeTool(tool.value)?makeShapePreview():null};overlay.setPointerCapture(e.pointerId);
   if(['pencil','eraser'].includes(tool.value))pixel(p.x,p.y,tool.value==='eraser');redraw();refreshInfo(p);
 }
 function moveDrawing(e){const p=bounded(getPixelPos(e)),i=interaction;if(!i)return;
@@ -427,7 +514,7 @@ function moveDrawing(e){const p=bounded(getPixelPos(e)),i=interaction;if(!i)retu
   }
   if(i.kind==='draw'){
     if(['pencil','eraser'].includes(i.tool)){line(i.last,p,i.tool==='eraser');i.last=p;}
-    else if(i.snapshot){paintCtx.putImageData(i.snapshot,0,0);drawShape(i.tool,i.start,p);}
+    else if(i.preview){i.current=p;queueShapePreview(i);}
   }else if(i.kind==='crop-new'){updateCrop(getBox(i.p,coord(e)));}
   else if(i.kind==='crop-move'){const cur=coord(e),dx=Math.round(cur.x-i.p.x),dy=Math.round(cur.y-i.p.y);updateCrop({...i.initial,x:clamp(i.initial.x+dx,0,canvas.width-i.initial.w),y:clamp(i.initial.y+dy,0,canvas.height-i.initial.h)});}
   else if(i.kind==='crop-handle'){
@@ -462,7 +549,7 @@ function moveDrawing(e){const p=bounded(getPixelPos(e)),i=interaction;if(!i)retu
     }
     drawOverlay();syncFloatFields();
   }
-  if(i.kind==='draw')redraw();
+  if(i.kind==='draw'&&!i.preview)redraw();
   refreshInfo(getPixelPos(e));
 }
 function floatDown(e){const p=coord(e);let h=floating?getHandle(floating,p):null;
@@ -502,8 +589,8 @@ viewport.addEventListener('pointermove',e=>{
     refreshInfo(getPixelPos(e));
   }
 });
-function endPointer(e){if(!interaction)return;const wasLayer=interaction.kind==='float-move'||interaction.kind==='float-handle';const wasDraw=interaction.kind==='draw';if(interaction.kind!=='pan')moveDrawing(e);interaction=null;if(wasLayer||wasDraw){renderLayers();redraw();}if(tool.value==='layer'){const p=coord(e),handle=floating?getHandle(floating,p):null;setEditCursor(handle?resizeCursors[handle]:(floating&&contains(floating,p)?'move':'default'));}else setEditCursor(tool.value==='hand'?'grab':'crosshair');refreshInfo(getPixelPos(e));}
-viewport.addEventListener('pointerup',endPointer);viewport.addEventListener('pointercancel',()=>{interaction=null;setEditCursor(tool.value==='hand'?'grab':tool.value==='layer'?'move':'crosshair');});viewport.addEventListener('contextmenu',e=>e.preventDefault());
+function endPointer(e){if(!interaction)return;const wasLayer=interaction.kind==='float-move'||interaction.kind==='float-handle';const wasDraw=interaction.kind==='draw';if(interaction.kind!=='pan')moveDrawing(e);if(wasDraw&&interaction.preview)finishShapePreview(interaction);interaction=null;if(wasLayer||wasDraw){renderLayers();redraw();}if(tool.value==='layer'){const p=coord(e),handle=floating?getHandle(floating,p):null;setEditCursor(handle?resizeCursors[handle]:(floating&&contains(floating,p)?'move':'default'));}else setEditCursor(tool.value==='hand'?'grab':'crosshair');refreshInfo(getPixelPos(e));}
+viewport.addEventListener('pointerup',endPointer);viewport.addEventListener('pointercancel',()=>{if(shapeFrame){cancelAnimationFrame(shapeFrame);shapeFrame=0;}interaction=null;redraw();setEditCursor(tool.value==='hand'?'grab':tool.value==='layer'?'move':'crosshair');});viewport.addEventListener('contextmenu',e=>e.preventDefault());
 viewport.addEventListener('wheel',e=>{e.preventDefault();const r=viewport.getBoundingClientRect(),x=e.clientX-r.left-viewport.clientLeft,y=e.clientY-r.top-viewport.clientTop,old=scale;scale=clamp(scale*(e.deltaY<0?1.25:.8),.1,48);panX=x-(x-panX)*scale/old;panY=y-(y-panY)*scale/old;updateView();},{passive:false});
 for(const b of document.querySelectorAll('[data-tool]'))b.addEventListener('click',()=>setTool(b.dataset.tool));
 $('editorGrid').onchange=syncPixelGrid;
