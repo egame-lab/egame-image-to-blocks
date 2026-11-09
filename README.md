@@ -28,8 +28,3 @@ E-game 達克武館圖片編輯與積木轉換工具，可直接在瀏覽器中�
 ## 原始專案與授權
 
 本專案基於 [Hello Bug（wangicheng）的 egame-image-to-blocks](https://github.com/wangicheng/egame-image-to-blocks) 修改與擴充，沿用 **MIT License**，請保留隨附的 [LICENSE](LICENSE) 及原作者著作權聲明。
-
-
-## 手機書籤短版（v0.10.13）
-
-修正部分 Android Chrome 在書籤「網址」編輯欄截斷過長 JavaScript 程式的問題：將書籤程式縮至約 1,600 個字元（網址編碼後約 2,650 字元），自包含，不依賴外部腳本。保留 XML 結構驗證、容量檢查、剪貼簿按鈕、貼上自動匯入與成功後自動關閉。已建立的舊書籤需在 Chrome 書籤編輯頁面手動替換網址。若舊版網址已遭截斷，不能直接繼續追加。
