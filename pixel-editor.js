@@ -357,7 +357,14 @@ function selectLayer(layer){initialFloatTransform={id:layer.id,x:layer.x,y:layer
 function drawOverlay(){ox.clearRect(0,0,overlay.width,overlay.height);
   ox.save();ox.imageSmoothingEnabled=false;for(const layer of getStack()){if(layer.isBase){if(baseVisible)ox.drawImage(canvas,0,0);}else if(visible(layer))ox.drawImage(layer.image,layer.x,layer.y,layer.w,layer.h);}ox.restore();
   if(selection&&tool.value==='crop'){
-    ox.save();ox.fillStyle='rgba(12,24,40,.55)';ox.fillRect(0,0,canvas.width,canvas.height);ox.clearRect(selection.x,selection.y,selection.w,selection.h);
+    ox.save();ox.fillStyle='rgba(12,24,40,.55)';
+    // The overlay canvas also contains the composited image. Never clear the crop
+    // interior: clearRect would erase the picture and reveal the checkerboard.
+    const {x,y,w,h}=selection,right=x+w,bottom=y+h;
+    ox.fillRect(0,0,canvas.width,y);
+    ox.fillRect(0,bottom,canvas.width,canvas.height-bottom);
+    ox.fillRect(0,y,x,h);
+    ox.fillRect(right,y,canvas.width-right,h);
     ox.strokeStyle='#238fff';ox.lineWidth=2/scale;ox.setLineDash([7/scale,4/scale]);ox.strokeRect(selection.x,selection.y,selection.w,selection.h);ox.setLineDash([]);
     for(const x of [selection.x,selection.x+selection.w])for(const y of [selection.y,selection.y+selection.h]){const n=Math.max(2,6/scale);ox.fillStyle='#fff';ox.strokeStyle='#238fff';ox.lineWidth=1/scale;ox.fillRect(x-n/2,y-n/2,n,n);ox.strokeRect(x-n/2,y-n/2,n,n);}
     ox.restore();
