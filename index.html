@@ -421,7 +421,7 @@
                         <label class="check"><input id="editorFloatLock" type="checkbox"> 鎖定原比例<small>預設可自由拉伸；勾選後保持寬高比例</small></label>
                         <button id="editorFloatFit" class="btn btn-sm">縮放到剛好放進畫布</button>
                         <button id="editorCleanLayer" class="btn btn-sm" title="移除圖片裡被存成像素的灰白棋盤格">去除棋盤格背景</button>
-                        <p id="editorCleanNote" class="note">只處理圖片中真的存在的灰白格；畫板的透明格紋本來就不會輸出。</p>
+                        <p id="editorCleanNote" class="note">處理圖片中存在的灰白格；畫板的透明格紋就不輸出。</p>
                         </div>
                     </details>
 
@@ -464,12 +464,12 @@
                     <div class="mode-cards" role="group" aria-label="輸出方式">
                         <button type="button" class="mode-card selected" data-mode-card="original" aria-pressed="true">
                             <strong>標準積木<small>模式 A</small></strong>
-                            <span>使用武館積木包積木，固定 80×80、70 色；圖片複雜時可能較慢。</span>
+                            <span>使用武館積木包積木，固定尺寸色彩 80×80、70 色；圖片複雜時可能較慢。</span>
                             <em>武館積木包・相容優先</em>
                         </button>
                         <button type="button" class="mode-card" data-mode-card="hidden" aria-pressed="false">
                             <strong>內建擴充積木<small>模式 B</small></strong>
-                            <span>使用遊戲已實作的字串、列表等積木；尺寸、色彩可調，積木通常較少。</span>
+                            <span>使用遊戲已實作的字串、列表等積木；尺寸、色彩可調，積木用量較少。</span>
                             <em>遊戲內建・積木包未提供</em>
                         </button>
                     </div>
@@ -635,7 +635,7 @@
                     <div class="transfer-tool-option">
                         <span class="transfer-tool-tag transfer-tool-tag-alt">其他選擇</span>
                         <a href="https://github.com/wangicheng/egame-tools" target="_blank" rel="noopener noreferrer">E-game Tools 完整工具包</a>
-                        <span>Hello Bug（wangicheng）開發，提供更多武館輔助功能，但部分功能目前已失效。</span>
+                        <span>Hello Bug（wangicheng）開發，提供更多武館輔助功能，但部分功能目前已失效</span>
                     </div>
                 </div>
                 <ol class="transfer-steps">
