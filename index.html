@@ -638,7 +638,7 @@
                 <div class="transfer-tool-options" aria-label="選擇積木貼上工具">
                     <div class="transfer-tool-option">
                         <span class="transfer-tool-tag">推薦</span>
-                        <a href="https://github.com/qert15376-code/egame-copy-paste" target="_blank" rel="noopener noreferrer">E-game 積木工具（精簡版）</a>
+                        <a href="https://github.com/egame-lab/egame-copy-paste" target="_blank" rel="noopener noreferrer">E-game 積木工具（精簡版）</a>
                         <span>提供積木複製、貼上及加速功能，其中加速功能經改進後有更快的執行速度</span>
                     </div>
                     <div class="transfer-tool-option">
@@ -669,14 +669,13 @@
             </div>
             <div id="transferPanelBookmark" class="transfer-method-panel" role="tabpanel" aria-labelledby="transferTabBookmark" data-transfer-panel="bookmark" hidden>
                 <ol class="transfer-steps">
-                    <li>在 Chrome 網址列輸入 <code>chrome://bookmarks/</code>，開啟書籤管理員。</li>
-                    <li>新增書籤：名稱建議設為 <strong>eg</strong>（較快找到），網址填入下方複製的書籤程式。</li>
-                    <li>之後在本網站按「複製積木碼」，回到武館；在 Chrome 網址列輸入 <strong>eg</strong>，點選帶書籤圖示的建議。</li>
-                    <li>按「從剪貼簿匯入」即可嘗試直接貼上；如果瀏覽器拒絕讀取，就長按輸入框貼上，完整 XML 會自動匯入。成功後視窗自動關閉；最後記得儲存武館。</li>
+                    <li><strong>首次設定：</strong>建立一個書籤，名稱設為 <code>eg</code>，把網址換成下方複製的書籤程式（手機可先將網頁加入書籤，再編輯網址）。</li>
+                    <li><strong>每次貼上：</strong>先在本網站按「複製積木碼」，切回 E-game 武館，開啟 <code>eg</code> 書籤。電腦可從書籤列或書籤選單開啟。</li>
+                    <li>按「剪貼簿」匯入；若無法讀取，就在文字框貼上 XML。貼上後會自動驗證並匯入，成功時視窗自動關閉，最後記得儲存武館。</li>
                 </ol>
-                <p class="bookmark-mobile-guide"><strong>Android Chrome：</strong>書籤名稱改成 <code>eg</code> 可減少輸入；在武館頁面的網址列輸入 <code>eg</code>，點選<strong>帶書籤圖示</strong>的建議。直接從書籤清單打開不能保證執行。Chrome 仍需要從網址列啟動書籤；若想固定顯示貼上按鈕，可改用支援擴充功能的手機瀏覽器。</p>
+                <p class="bookmark-mobile-guide"><strong>手機如何開啟書籤？</strong> Android Chrome：在武館網址列輸入 <code>eg</code>，點選帶書籤圖示的建議。iPhone Chrome／Safari：從書籤清單點選 <code>eg</code>。</p>
                 <button type="button" class="btn btn-primary transfer-action" id="transferCopyBookmark">複製書籤程式</button>
-                <p class="transfer-note">手機版採用短版書籤（約 1,600 字元），避免長書籤程式在手機儲存時被截斷；剪貼簿讀取需瀏覽器授權，無法讀取時可手動貼上。匯入成功後視窗會自動關閉並顯示積木數。舊版書籤需重新複製並更新網址。</p>
+                <p class="transfer-note">書籤只需設定一次；目前已在 Android Chrome、iPhone Chrome 與 Safari 測試可用。匯入不會自動儲存武館。</p>
             </div>
             <div class="transfer-status" id="transferStatus" role="status" aria-live="polite">完成積木預覽後，即可複製需要的內容。</div>
             <p class="transfer-footnote">標準積木使用武館積木包中的積木，但複雜圖片可能執行緩慢；內建擴充積木包使用遊戲已實作但武館積木包未提供的積木類型。三種方式皆單純加入積木，不自動儲存。</p>
