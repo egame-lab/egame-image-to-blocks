@@ -127,7 +127,29 @@ function getState(){return paintCtx.getImageData(0,0,paintCtx.canvas.width,paint
 // Layer objects retain their source images and can be repositioned without touching the base bitmap.
 function snapshot(){return {bitmap:ctx.getImageData(0,0,canvas.width,canvas.height),layers:layers.map(layer=>({...layer,image:layer.image instanceof HTMLCanvasElement?duplicateImage(layer.image):layer.image})),activeId:floating?.id??null,activePaintId,baseOrder,baseVisible,baseOrderManual,tool:tool.value};}
 function checkpoint(){window.editorInvalidateConversion?.();history.push(snapshot());if(history.length>25)history.shift();future=[];}
-function restore(state){initialFloatTransform=null;window.editorInvalidateConversion?.();const img=state.bitmap;canvas.width=img.width;canvas.height=img.height;ctx.putImageData(img,0,0);layers=state.layers.map(layer=>({...layer,image:layer.image instanceof HTMLCanvasElement?duplicateImage(layer.image):layer.image}));floating=layers.find(layer=>layer.id===state.activeId)||null;activePaintId=state.activePaintId??null;baseOrder=state.baseOrder??0;baseVisible=state.baseVisible!==false;baseOrderManual=!!state.baseOrderManual;refreshPaintCtx();selection=null;tool.value=state.tool||'pencil';matchOverlay();fit();syncButtons();syncFloatFields();dirty=true;refreshInfo();}
+function restore(state){
+  // Restoring a stroke does not change the canvas dimensions. Re-running fit()
+  // for every undo used to reset the zoom/pan and reflow nearby controls.
+  const oldWidth=canvas.width,oldHeight=canvas.height;
+  const mobile=window.matchMedia?.('(pointer: coarse)').matches;
+  const viewportTop=mobile?viewport.getBoundingClientRect().top:null;
+  initialFloatTransform=null;window.editorInvalidateConversion?.();
+  const img=state.bitmap;canvas.width=img.width;canvas.height=img.height;ctx.putImageData(img,0,0);
+  layers=state.layers.map(layer=>({...layer,image:layer.image instanceof HTMLCanvasElement?duplicateImage(layer.image):layer.image}));
+  floating=layers.find(layer=>layer.id===state.activeId)||null;
+  activePaintId=state.activePaintId??null;baseOrder=state.baseOrder??0;
+  baseVisible=state.baseVisible!==false;baseOrderManual=!!state.baseOrderManual;
+  refreshPaintCtx();selection=null;tool.value=state.tool||'pencil';
+  matchOverlay();
+  if(canvas.width!==oldWidth||canvas.height!==oldHeight)fit();
+  syncButtons();syncFloatFields();dirty=true;refreshInfo();
+  // If undo changes the selected-image toolbar height, keep the editor canvas
+  // at the same screen location rather than letting the page jump.
+  if(mobile&&Number.isFinite(viewportTop)){
+    const delta=viewport.getBoundingClientRect().top-viewportTop;
+    if(Math.abs(delta)>1)window.scrollBy({top:delta,behavior:'instant'});
+  }
+}
 function undo(){if(!history.length)return;future.push(snapshot());restore(history.pop());}
 function redo(){if(!future.length)return;history.push(snapshot());restore(future.pop());}
 function changeCanvas(w,h,kind='image',method='nearest',anchor='center'){

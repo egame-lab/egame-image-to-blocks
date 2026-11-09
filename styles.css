@@ -1286,3 +1286,31 @@ select:not([multiple]) {
 @media (max-width: 620px) {
     .transfer-tool-options { grid-template-columns: 1fr; gap: 7px; }
 }
+
+
+/* v0.10.9 — 手機捲動與復原視覺穩定性 */
+@media (max-width: 700px), (pointer: coarse) {
+    /* 網址列收合會改變視窗高度；避免整頁與按鈕同時平滑位移。 */
+    html { scroll-behavior: auto; }
+    /* 手機上長時間運作的固定背景動畫容易增加合成與重繪負擔。 */
+    .arcana .spin, .torchlight, .quick-empty svg { animation: none !important; }
+    /* 讓畫面按正常文件順序捲動，不與手機瀏覽器底部控制列競爭定位。 */
+    .quick-actions, #step1 .cta-bar {
+        position: static;
+        bottom: auto;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+    /* 選取工具列由狀態決定，不另做入場／退場動畫。 */
+    #editorFloatingActions { transition: none; }
+}
+.mobile-canvas-scroll-tip, .bookmark-mobile-guide { display: none; }
+.mobile-canvas-scroll-tip { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 6px; }
+.bookmark-mobile-guide {
+    background: #f5e6c8; border-left: 3px solid #a44723;
+    padding: 9px 11px; margin: 12px 0; font-size: 13px; line-height: 1.6;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+    .mobile-canvas-scroll-tip, .bookmark-mobile-guide { display: block; }
+}
