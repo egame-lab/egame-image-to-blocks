@@ -1,5 +1,5 @@
 // 介面狀態輔助：步驟印章、轉換後的預覽切換、複製完成的狀態。
-// 只讀取既有狀態並更新畫面，不改動繪圖或積木轉換邏輯。
+// 讀取既有狀態並更新畫面，維持繪圖或積木轉換邏輯。
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -37,7 +37,7 @@
   }
   frameTabs.forEach(tab => tab.addEventListener('click', () => showFrame(tab.dataset.frameShow)));
 
-  // 轉換完成後，把「積木顏色」畫面複製到快速模式的預覽框。
+  // 轉換完成後，「積木顏色」畫面複製到快速模式的預覽框。
   function mirrorResult() {
     const src = $('previewCanvas');
     if (!src || !src.width || !src.height) return;
@@ -69,7 +69,7 @@
       const ok = toast.classList.contains('bg-green-100') && !toast.classList.contains('hidden');
       if (!ok) return;
       copied = true;
-      quickMessage.textContent = '積木碼已複製，可貼到 E-game 使用。';
+      quickMessage.textContent = 'XML 積木碼已複製，可貼到 E-game 使用。';
       updateStage();
     }, 0);
   });
