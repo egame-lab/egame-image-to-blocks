@@ -150,8 +150,8 @@ function restore(state){
     if(Math.abs(delta)>1)window.scrollBy({top:delta,behavior:'instant'});
   }
 }
-function undo(){if(!history.length)return;future.push(snapshot());restore(history.pop());}
-function redo(){if(!future.length)return;history.push(snapshot());restore(future.pop());}
+function undo(){if(!history.length)return;future.push(snapshot());restore(history.pop());scheduleEffectPreview();}
+function redo(){if(!future.length)return;history.push(snapshot());restore(future.pop());scheduleEffectPreview();}
 function changeCanvas(w,h,kind='image',method='nearest',anchor='center'){
   // Manually choosing an editing canvas size takes priority over auto-fit on a later import.
   if($('editorAutoCanvas'))$('editorAutoCanvas').checked=false;
@@ -346,26 +346,119 @@ function finishShapePreview(i){
   drawShape(i.tool,i.start,i.current);
   i.preview=null;
 }
-// A flood-fill click on a pixel that already has the chosen RGBA value is
-// not an edit. In particular, it must not discard a pending Ctrl+Y redo step.
-function fillIsNoop(p){
-  const expected=rgba(),picture=picturePaintTarget();
-  let data;
-  if(picture){
-    const px=Math.floor(p.x-picture.x),py=Math.floor(p.y-picture.y);
-    if(px<0||py<0||px>=picture.w||py>=picture.h)return true;
-    const sample=document.createElement('canvas');sample.width=1;sample.height=1;
-    const sg=sample.getContext('2d',{willReadFrequently:true});sg.imageSmoothingEnabled=false;
-    sg.drawImage(picture.image,-px,-py,picture.w,picture.h);
-    data=sg.getImageData(0,0,1,1).data;
-  }else{
-    const target=activePaint();
-    const source=target?.type==='paint'?target.image.getContext('2d',{willReadFrequently:true}):ctx;
-    data=source.getImageData(p.x,p.y,1,1).data;
-  }
-  return expected.every((value,index)=>value===data[index]);
+// Work on exactly one editable bitmap: original canvas, paint layer, or
+// imported image at its displayed size. Never flatten the other layers.
+function editableBitmap(layer){
+  if(!layer)return ctx.getImageData(0,0,canvas.width,canvas.height);
+  const width=layer.type==='paint'?layer.image.width:Math.max(1,Math.round(layer.w));
+  const height=layer.type==='paint'?layer.image.height:Math.max(1,Math.round(layer.h));
+  if(layer.image instanceof HTMLCanvasElement&&layer.image.width===width&&layer.image.height===height)
+    return layer.image.getContext('2d',{willReadFrequently:true}).getImageData(0,0,width,height);
+  const bitmap=document.createElement('canvas');bitmap.width=width;bitmap.height=height;
+  const g=bitmap.getContext('2d',{willReadFrequently:true});g.imageSmoothingEnabled=false;
+  g.drawImage(layer.image,0,0,width,height);
+  return g.getImageData(0,0,width,height);
 }
-function fill(p){if(!pointInside(p))return;const picture=picturePaintTarget();if(picture){p={x:p.x-picture.x,y:p.y-picture.y};}const img=getState(),d=img.data,w=img.width,h=img.height;if(p.x<0||p.y<0||p.x>=w||p.y>=h)return;const start=(p.y*w+p.x)*4,old=d.slice(start,start+4),replacement=rgba();if(old.every((v,i)=>v===replacement[i]))return;const q=[p.y*w+p.x],seen=new Uint8Array(w*h);let head=0;while(head<q.length){let k=q[head++];if(seen[k])continue;seen[k]=1;const j=k*4;if(d[j]!==old[0]||d[j+1]!==old[1]||d[j+2]!==old[2]||d[j+3]!==old[3])continue;d.set(replacement,j);const x=k%w,y=(k/w)|0;if(x)q.push(k-1);if(x<w-1)q.push(k+1);if(y)q.push(k-w);if(y<h-1)q.push(k+w);}paintCtx.putImageData(img,0,0);redraw();}
+function putEditableBitmap(layer,image){
+  if(!layer){ctx.putImageData(image,0,0);return;}
+  // Replacing only the selected bitmap also preserves the old source image in
+  // history, including imported images that had not yet been rasterized.
+  const bitmap=document.createElement('canvas');bitmap.width=image.width;bitmap.height=image.height;
+  bitmap.getContext('2d',{willReadFrequently:true}).putImageData(image,0,0);
+  layer.image=bitmap;
+  if(layer.type!=='paint'){layer.w=image.width;layer.h=image.height;}
+  refreshPaintCtx();
+}
+function matchesSeed(data,idx,seed,tolerance){
+  // Compare against the original clicked pixel, not a chain of neighbours:
+  // gradual colour ramps must not flood the entire image by transitivity.
+  if(Math.abs(data[idx+3]-seed[3])>tolerance)return false;
+  if(data[idx+3]===0&&seed[3]===0)return true; // transparent RGB has no visual meaning
+  return Math.abs(data[idx]-seed[0])<=tolerance &&
+         Math.abs(data[idx+1]-seed[1])<=tolerance &&
+         Math.abs(data[idx+2]-seed[2])<=tolerance;
+}
+function fill(p){
+  if(!pointInside(p))return;
+  const layer=activePaint(),picture=picturePaintTarget();
+  const local=picture?{x:Math.floor(p.x-picture.x),y:Math.floor(p.y-picture.y)}:p;
+  const img=editableBitmap(layer),d=img.data,w=img.width,h=img.height;
+  if(local.x<0||local.y<0||local.x>=w||local.y>=h)return;
+  const start=local.y*w+local.x,old=d.slice(start*4,start*4+4),replacement=rgba();
+  const tolerance=clamp(Math.round(+$('editorFillTolerance').value||0),0,255);
+  const contiguous=$('editorFillContiguous').checked;
+  if(tolerance===0&&old.every((v,i)=>v===replacement[i]))return;
+  let changed=false;
+  function recolor(k){const j=k*4;
+    if(d[j]===replacement[0]&&d[j+1]===replacement[1]&&d[j+2]===replacement[2]&&d[j+3]===replacement[3])return;
+    d.set(replacement,j);changed=true;
+  }
+  if(!contiguous){
+    for(let k=0,n=w*h;k<n;k++)if(matchesSeed(d,k*4,old,tolerance))recolor(k);
+  }else{
+    // Stack visits each coordinate at most once, even for a huge empty canvas.
+    const queue=new Uint32Array(w*h),seen=new Uint8Array(w*h);
+    let head=0,tail=1;queue[0]=start;seen[start]=1;
+    while(head<tail){
+      const k=queue[head++],j=k*4;
+      if(!matchesSeed(d,j,old,tolerance))continue;
+      recolor(k);
+      const x=k%w,y=(k/w)|0;
+      if(x>0&&!seen[k-1]){seen[k-1]=1;queue[tail++]=k-1;}
+      if(x+1<w&&!seen[k+1]){seen[k+1]=1;queue[tail++]=k+1;}
+      if(y>0&&!seen[k-w]){seen[k-w]=1;queue[tail++]=k-w;}
+      if(y+1<h&&!seen[k+w]){seen[k+w]=1;queue[tail++]=k+w;}
+    }
+  }
+  if(!changed)return;
+  checkpoint();putEditableBitmap(layer,img);dirty=true;syncButtons();redraw();refreshInfo();
+}
+function editTarget(){return floating||activePaint()||null;}
+function applyColourEffect(image,type,threshold){
+  const data=image.data;let changed=false;
+  for(let i=0;i<data.length;i+=4){
+    if(!data[i+3])continue; // Preserve transparent pixels, including their hidden RGB.
+    const r=data[i],g=data[i+1],b=data[i+2];let nr=r,ng=g,nb=b;
+    if(type==='invert'){nr=255-r;ng=255-g;nb=255-b;}
+    else{
+      const luminosity=Math.round(.2126*r+.7152*g+.0722*b);
+      nr=ng=nb=type==='threshold'?(luminosity>=threshold?255:0):luminosity;
+    }
+    if(nr!==r||ng!==g||nb!==b){data[i]=nr;data[i+1]=ng;data[i+2]=nb;changed=true;}
+  }
+  return changed;
+}
+function updateEffectPreview(){
+  const fold=$('editorEffectsFold');if(!fold.open)return;
+  const target=editTarget(),output=$('editorEffectPreview'),g=output.getContext('2d',{willReadFrequently:true});
+  const src=target?target.image:canvas;
+  g.clearRect(0,0,output.width,output.height);
+  if(!src)return;
+  const width=target?target.type==='paint'?target.image.width:target.w:canvas.width;
+  const height=target?target.type==='paint'?target.image.height:target.h:canvas.height;
+  if(!width||!height)return;
+  const ratio=Math.min(output.width/width,output.height/height);
+  const w=Math.max(1,Math.round(width*ratio)),h=Math.max(1,Math.round(height*ratio));
+  g.imageSmoothingEnabled=true;
+  g.drawImage(src,Math.floor((output.width-w)/2),Math.floor((output.height-h)/2),w,h);
+  const img=g.getImageData(0,0,output.width,output.height);
+  applyColourEffect(img,$('editorEffectType').value,+$('editorThreshold').value);
+  g.putImageData(img,0,0);
+}
+let effectPreviewFrame=0;
+function scheduleEffectPreview(){
+  if(!$('editorEffectsFold').open||effectPreviewFrame)return;
+  effectPreviewFrame=requestAnimationFrame(()=>{effectPreviewFrame=0;updateEffectPreview();});
+}
+function runColourEffect(){
+  const layer=editTarget(),image=editableBitmap(layer),type=$('editorEffectType').value;
+  if(!applyColourEffect(image,type,+$('editorThreshold').value)){
+    notice('目前圖層已符合此效果，沒有需要修改的像素。');return;
+  }
+  checkpoint();putEditableBitmap(layer,image);dirty=true;syncButtons();redraw();refreshInfo();
+  notice('已套用'+({invert:'反色',grayscale:'灰階',threshold:'黑白二值化'}[type])+'，可按 Ctrl+Z 復原。');
+  scheduleEffectPreview();
+}
 function pick(p){if(!pointInside(p))return;const d=compositeCanvas().getContext('2d').getImageData(p.x,p.y,1,1).data;color.value='#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('');alpha.value=d[3];markSwatch();}
 // Crop rectangles use integer image pixels. Fixed-ratio rectangles are always
 // clamped as a WHOLE before positioning: clipping X/Y independently distorts ratios.
@@ -443,7 +536,7 @@ function renderLayers(){
   }
 }
 
-function syncButtons(){const crop=tool.value==='crop';$('editorCropOptions').hidden=!crop;$('editorPaintOptions').hidden=crop||tool.value==='hand'||tool.value==='layer';$('editorBrushControl').hidden=['picker','fill','solidRect'].includes(tool.value);$('editorFloatOptions').hidden=!floating;$('editorFloatingActions').hidden=!floating;$('editorCropActions').hidden=!crop;
+function syncButtons(){const crop=tool.value==='crop';$('editorCropOptions').hidden=!crop;$('editorPaintOptions').hidden=crop||tool.value==='hand'||tool.value==='layer';$('editorBrushControl').hidden=['picker','fill','solidRect'].includes(tool.value);$('editorFillSettings').hidden=tool.value!=='fill';$('editorFloatOptions').hidden=!floating;$('editorFloatingActions').hidden=!floating;$('editorCropActions').hidden=!crop;
   $('editorShapeOptions').hidden=!['circle','ellipse'].includes(tool.value);
   $('editorShapeSelectedLabel').textContent=shapeNames[tool.value]||'圖案設定';
   $('editorShapesMenu').classList.toggle('tool-selected',isShapeTool(tool.value));
@@ -451,6 +544,7 @@ function syncButtons(){const crop=tool.value==='crop';$('editorCropOptions').hid
   for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('active',b.dataset.tool===tool.value);
   $('editorModeLabel').textContent=tool.value==='layer'?(floating?($('editorFloatLock').checked?'調整圖片：拖曳圖片移動；控制點縮放（鎖定比例）':'調整圖片：拖曳圖片移動；控制點自由縮放'):'調整圖片：點選要移動或縮放的圖片'):({pencil:'鉛筆：拖曳繪製像素',eraser:'橡皮擦：清除像素透明度',fill:'填色：填滿連續同色區',picker:'滴管：擷取像素 RGB 與 Alpha',line:'直線：拖曳繪製',rect:'矩形：拖曳繪製框線',solidRect:'實心矩形：拖曳繪製',circle:'圓形：拖曳畫出等寬高的圓',ellipse:'橢圓：拖曳自由改變長寬',arrow:'箭頭：從起點拖向箭頭方向',crop:'裁切：亮框內保留，暗區刪除',hand:'移動畫面：只改變觀看位置，不移動圖片'}[tool.value]||'像素畫板');
   if(tool.value!=='layer'&&tool.value!=='hand'&&tool.value!=='crop'&&picturePaintTarget())$('editorModeLabel').textContent+=`｜正在編輯「${picturePaintTarget().name||'圖片圖層'}」`;
+  scheduleEffectPreview();
   setEditCursor(tool.value==='layer'?'move':tool.value==='hand'?'grab':tool.value==='crop'?'crosshair':tool.value==='picker'?'crosshair':'crosshair');$('editorCropApply').disabled=!selection;renderLayers();
 }
 function setTool(value){
@@ -531,13 +625,12 @@ function prepareDraw(e){const p=getPixelPos(e);if(!pointInside(p))return;if(tool
     notice('目前選取「'+(picture.name||'圖片圖層')+'」；請在圖片範圍內繪圖，或於圖層管理選取「原始畫布」。');
     return;
   }
-  if(tool.value==='fill' && fillIsNoop(p))return;
+  if(tool.value==='fill'){fill(p);return;}
   checkpoint();dirty=true;
   if(picture)preparePicturePixels();
   if(!activePaint() && !baseVisible)baseVisible=true;
   if(activePaint() && !visible(activePaint()))activePaint().visible=true;
   if(activePaintId===null&&!baseOrderManual)baseOrder=layers.length;
-  if(tool.value==='fill'){fill(p);syncButtons();refreshInfo(p);return;}
   interaction={kind:'draw',tool:tool.value,start:p,last:p,current:p,preview:isShapeTool(tool.value)?makeShapePreview():null};overlay.setPointerCapture(e.pointerId);
   if(['pencil','eraser'].includes(tool.value))pixel(p.x,p.y,tool.value==='eraser');redraw();refreshInfo(p);
 }
@@ -623,7 +716,7 @@ viewport.addEventListener('pointermove',e=>{
     refreshInfo(getPixelPos(e));
   }
 });
-function endPointer(e){if(!interaction)return;const wasLayer=interaction.kind==='float-move'||interaction.kind==='float-handle';const wasDraw=interaction.kind==='draw';if(interaction.kind!=='pan')moveDrawing(e);if(wasDraw&&interaction.preview)finishShapePreview(interaction);interaction=null;if(wasLayer||wasDraw){renderLayers();redraw();}if(tool.value==='layer'){const p=coord(e),handle=floating?getHandle(floating,p):null;setEditCursor(handle?resizeCursors[handle]:(floating&&contains(floating,p)?'move':'default'));}else setEditCursor(tool.value==='hand'?'grab':'crosshair');refreshInfo(getPixelPos(e));}
+function endPointer(e){if(!interaction)return;const wasLayer=interaction.kind==='float-move'||interaction.kind==='float-handle';const wasDraw=interaction.kind==='draw';if(interaction.kind!=='pan')moveDrawing(e);if(wasDraw&&interaction.preview)finishShapePreview(interaction);interaction=null;if(wasLayer||wasDraw){renderLayers();redraw();scheduleEffectPreview();}if(tool.value==='layer'){const p=coord(e),handle=floating?getHandle(floating,p):null;setEditCursor(handle?resizeCursors[handle]:(floating&&contains(floating,p)?'move':'default'));}else setEditCursor(tool.value==='hand'?'grab':'crosshair');refreshInfo(getPixelPos(e));}
 viewport.addEventListener('pointerup',endPointer);viewport.addEventListener('pointercancel',()=>{if(shapeFrame){cancelAnimationFrame(shapeFrame);shapeFrame=0;}interaction=null;redraw();setEditCursor(tool.value==='hand'?'grab':tool.value==='layer'?'move':'crosshair');});viewport.addEventListener('contextmenu',e=>e.preventDefault());
 viewport.addEventListener('wheel',e=>{e.preventDefault();const r=viewport.getBoundingClientRect(),x=e.clientX-r.left-viewport.clientLeft,y=e.clientY-r.top-viewport.clientTop,old=scale;scale=clamp(scale*(e.deltaY<0?1.25:.8),.1,48);panX=x-(x-panX)*scale/old;panY=y-(y-panY)*scale/old;updateView();},{passive:false});
 for(const b of document.querySelectorAll('[data-tool]'))b.addEventListener('click',()=>setTool(b.dataset.tool));
@@ -633,6 +726,18 @@ else window.addEventListener('resize',drawPixelGrid);
 $('editorFit').onclick=()=>{zoom.value='fit';fit();};
 zoom.onchange=()=>{if(zoom.value==='fit')fit();else{scale=+zoom.value;panX=(viewport.clientWidth-canvas.width*scale)/2;panY=(viewport.clientHeight-canvas.height*scale)/2;updateView();}};
 $('editorUndo').onclick=undo;$('editorRedo').onclick=redo;
+$('editorFillTolerance').addEventListener('input',e=>{$('editorFillToleranceValue').textContent=e.target.value;});
+$('editorEffectsFold').addEventListener('toggle',scheduleEffectPreview);
+$('editorEffectType').addEventListener('change',()=>{
+  $('editorThresholdSettings').hidden=$('editorEffectType').value!=='threshold';
+  scheduleEffectPreview();
+});
+$('editorThreshold').addEventListener('input',()=>{
+  $('editorThresholdValue').textContent=$('editorThreshold').value;
+  scheduleEffectPreview();
+});
+$('editorEffectApply').addEventListener('click',runColourEffect);
+
 $('editorNew').onclick=()=>openDialog('new',{w:400,h:400,lock:false});
 $('editorAddPaintLayer').onclick=createPaintLayer;
 $('editorClear').onclick=()=>{if(!window.confirm('確定要清空整張畫布（包含所有貼圖）？\n可以在清除後按「復原」還原。'))return;checkpoint();ctx.clearRect(0,0,canvas.width,canvas.height);layers=[];baseOrder=0;baseVisible=true;baseOrderManual=false;activePaintId=null;refreshPaintCtx();floating=null;selection=null;dirty=true;syncButtons();drawOverlay();refreshInfo();notice('已清空畫布，可按 Ctrl+Z 復原。');};

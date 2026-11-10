@@ -395,11 +395,42 @@
                             <input id="editorBrushRange" type="range" min="1" max="64" step="1" value="1" aria-label="拖曳調整鉛筆或橡皮擦大小">
                             <div class="brush-scale" aria-hidden="true"><span>1</span><span>64</span></div>
                         </div>
+                        <div id="editorFillSettings" class="editor-fill-settings" hidden>
+                            <label class="effect-setting-label" for="editorFillTolerance">填色容許度 <output id="editorFillToleranceValue">32</output></label>
+                            <input id="editorFillTolerance" type="range" min="0" max="255" step="1" value="32" aria-label="相似顏色容許度">
+                            <div class="effect-range-ends"><span>0 · 完全相同</span><span>255 · 範圍最廣</span></div>
+                            <label class="check"><input type="checkbox" id="editorFillContiguous" checked> 僅填滿相連區域</label>
+                            <p class="note">以點擊位置的顏色為基準；只修改目前編輯的圖層。</p>
+                        </div>
                         <details class="mini">
                             <summary>進階：半透明</summary>
                             <label class="row-field"><span>不透明度<small>0–255</small></span><input id="editorAlpha" type="number" min="0" max="255" value="255"></label>
                         </details>
                     </div>
+
+                    <details class="fold editor-effects" id="editorEffectsFold">
+                        <summary>圖片顏色調整</summary>
+                        <div class="fold-body editor-effects-body">
+                            <label class="col-field" for="editorEffectType"><span>效果</span>
+                                <select id="editorEffectType">
+                                    <option value="invert">反色</option>
+                                    <option value="grayscale">灰階</option>
+                                    <option value="threshold">黑白二值化</option>
+                                </select>
+                            </label>
+                            <div id="editorThresholdSettings" hidden>
+                                <label class="effect-setting-label" for="editorThreshold">亮度門檻 <output id="editorThresholdValue">128</output></label>
+                                <input id="editorThreshold" type="range" min="0" max="255" step="1" value="128">
+                                <div class="effect-range-ends"><span>偏黑</span><span>偏白</span></div>
+                            </div>
+                            <div class="editor-effect-preview-wrap">
+                                <canvas id="editorEffectPreview" width="200" height="116" aria-label="選取圖層的效果預覽"></canvas>
+                                <small>目前圖層效果預覽（不會修改原圖）</small>
+                            </div>
+                            <button id="editorEffectApply" type="button" class="btn btn-sm btn-wide">套用到目前圖層</button>
+                            <p class="note">先於圖層管理選擇要修改的圖層；可按 Ctrl+Z 復原。透明度保持不變。</p>
+                        </div>
+                    </details>
 
                     <div id="editorShapeOptions" class="block" hidden>
                         <div class="block-title"><span id="editorShapeSelectedLabel">圖案設定</span></div>

@@ -1354,3 +1354,17 @@ body.transfer-guide-open {
     touch-action: none;
     -webkit-overflow-scrolling: auto;
 }
+
+/* 第一階段色彩工具：全部保持在原有側欄中，手機不增加固定工具列。 */
+.editor-fill-settings { display: flex; flex-direction: column; gap: 7px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.editor-fill-settings[hidden], #editorThresholdSettings[hidden] { display: none; }
+.effect-setting-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 700; }
+.effect-setting-label output { min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.effect-range-ends { display: flex; justify-content: space-between; gap: 5px; font-size: 11px; color: var(--muted); }
+.editor-effects .fold-body { padding-top: 10px; }
+.editor-effects-body { min-width: 0; }
+.editor-effects-body select { width: 100%; }
+#editorThresholdSettings { display: flex; flex-direction: column; gap: 8px; }
+.editor-effect-preview-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+#editorEffectPreview { display: block; width: 100%; max-width: 220px; height: 116px; object-fit: contain; border: 1px solid var(--line); background-color: var(--checker-a); background-image:linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%),linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%);background-position:0 0,6px 6px;background-size:12px 12px;image-rendering:pixelated; }
+.editor-effect-preview-wrap small { color: var(--muted); font-size: 11px; line-height: 1.4; text-align: center; }
