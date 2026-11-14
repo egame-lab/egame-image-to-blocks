@@ -274,128 +274,166 @@ function buildAdaptivePalette(pixels, maxColors = 256, preserveAlpha = false) {
     return palette.length ? palette : [[0, 0, 0]];
 }
 
-// 模式 B 256 色：先依這張圖建立自適應色盤，再用同一套 Atkinson 強度進行量化。
-function convertImageAdaptive256(imageSrc, ditherStrength = 0.0, targetSize = 80, preserveAlpha = false, fitMode = 'stretch', isCurrent = () => true) {
+// 高彩 256 色：使用 RGB 最小平方誤差作為安全基準，避免感知空間轉換導致整體偏色。
+// 三個候選色盤：Median Cut、RGB K-means、固定 70 色 + 自適應補色。
+// 只在無抖色的量化誤差較低時採用新色盤；保證選盤時不比 70 色基準差。
+function optimizeAdaptivePalette(pixels, preserveAlpha = false) {
+    const base = buildAdaptivePalette(pixels, 256, preserveAlpha);
+    const histogram = new Map();
+    for (let i = 0; i < pixels.length; i += 4) {
+        if (preserveAlpha && pixels[i + 3] === 0) continue;
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+        let c = histogram.get(key);
+        if (!c) { c = { r: 0, g: 0, b: 0, n: 0 }; histogram.set(key, c); }
+        c.r += r; c.g += g; c.b += b; c.n++;
+    }
+    const samples = Array.from(histogram.values(), c => [c.r / c.n, c.g / c.n, c.b / c.n, c.n]);
+    if (!samples.length) return [[0, 0, 0]];
+    const sq = (r, g, b, c) => {
+        const dr = r - c[0], dg = g - c[1], db = b - c[2];
+        return dr * dr + dg * dg + db * db;
+    };
+    function refine(initial, iterations) {
+        let centers = initial.map(c => c.slice());
+        for (let round = 0; round < iterations; round++) {
+            const sums = centers.map(() => [0, 0, 0, 0]);
+            for (const [r, g, b, n] of samples) {
+                let best = 0, dist = Infinity;
+                for (let k = 0; k < centers.length; k++) {
+                    const d = sq(r, g, b, centers[k]);
+                    if (d < dist) { dist = d; best = k; }
+                }
+                const s = sums[best];
+                s[0] += r * n; s[1] += g * n; s[2] += b * n; s[3] += n;
+            }
+            centers = centers.map((c, i) => sums[i][3] ? sums[i].slice(0, 3).map(v => Math.round(v / sums[i][3])) : c);
+        }
+        return centers;
+    }
+    function unique(colors) {
+        const seen = new Set();
+        return colors.filter(c => {
+            const key = c.join(',');
+            if (seen.has(key)) return false;
+            seen.add(key); return true;
+        }).slice(0, 256);
+    }
+    // 加入固定 70 色作為候選，確保對應品質不會比原先固定色盤差。
+    // 其餘 186 個位置分配給對此圖最重要的自適應顏色。
+    const fixed70 = typeof hiddenAvailableColorsRgb70 !== 'undefined' ? hiddenAvailableColorsRgb70 : [];
+    const refined = unique(refine(base, 4));
+    const counts = refined.map(() => 0);
+    for (const [r, g, b, n] of samples) {
+        let best = 0, distance = Infinity;
+        for (let k = 0; k < refined.length; k++) {
+            const d = sq(r, g, b, refined[k]);
+            if (d < distance) { distance = d; best = k; }
+        }
+        counts[best] += n;
+    }
+    const rank = refined.map((c, i) => ({ c, n: counts[i] })).sort((a, b) => b.n - a.n);
+    const hybrid = unique([...fixed70, ...rank.map(v => v.c)]);
+    const candidates = [base, refined, hybrid];
+    // 同一 RGB 目標，選最低量化誤差；避免任意色相轉換或壞色盤。
+    function score(palette) {
+        let total = 0;
+        for (const [r, g, b, n] of samples) {
+            let nearest = Infinity;
+            for (const c of palette) {
+                const d = sq(r, g, b, c);
+                if (d < nearest) nearest = d;
+            }
+            total += nearest * n;
+        }
+        return total;
+    }
+    let chosen = hybrid, bestScore = score(hybrid);
+    for (const candidate of candidates.slice(0, 2)) {
+        const error = score(candidate);
+        if (error < bestScore) { chosen = candidate; bestScore = error; }
+    }
+    return chosen;
+}
+
+// 對應色盤每次都用精確 RGB 找最近色；浮點緩衝避免 Atkinson 誤差被提前截斷。
+function convertImageAdaptive256(imageSrc, ditherStrength = 0, targetSize = 80, preserveAlpha = false, fitMode = 'stretch', isCurrent = () => true) {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "Anonymous";
-
+        img.crossOrigin = 'Anonymous';
         img.onload = () => {
-            if (!isCurrent()) { resolve({numberString:'', paletteHex:[], indexMap:[], alphaString:null}); return; }
+            if (!isCurrent()) { resolve({ numberString: '', paletteHex: [], indexMap: [], alphaString: null }); return; }
             try {
-            const canvas = document.getElementById('imageCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = targetSize;
-            canvas.height = targetSize;
-            ctx.imageSmoothingEnabled = false;
-            drawImageToSquare(ctx, img, targetSize, targetSize, fitMode);
-
-            const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-            const pixels = imageData.data;
-            const width = targetSize;
-            const height = targetSize;
-            const paletteRgb = buildAdaptivePalette(pixels, 256, preserveAlpha);
-            const alphaString = preserveAlpha ? Array.from({ length: width * height }, (_, i) => pixels[i * 4 + 3].toString(16).padStart(2, '0')).join('') : null;
-            const paletteHex = paletteRgb.map(rgb => rgbToHex(rgb[0], rgb[1], rgb[2]));
-            const indexMap = paletteRgb.map((_, i) => String(i).padStart(3, '0'));
-            let numberString = '';
-
-            function colorDistanceSquared(r, g, b, color) {
-                const dr = r - color[0];
-                const dg = g - color[1];
-                const db = b - color[2];
-                return dr * dr + dg * dg + db * db;
-            }
-
-            // 最近色結果用 5-bit RGB 鍵快取。最多只有 32768 種鍵，
-            // 這樣仍然很快，但比 4-bit 更不容易把暖棕或米色壓壞。
-            const nearestCache = new Int16Array(32768);
-            nearestCache.fill(-1);
-            function getClosestColorIndex(r, g, b) {
-                const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
-                const cached = nearestCache[key];
-                if (cached >= 0) return cached;
-                let best = 0;
-                let minDistance = Infinity;
-                for (let j = 0; j < paletteRgb.length; j++) {
-                    const distance = colorDistanceSquared(r, g, b, paletteRgb[j]);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        best = j;
-                    }
+                const canvas = document.getElementById('imageCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = targetSize; canvas.height = targetSize;
+                ctx.imageSmoothingEnabled = false;
+                drawImageToSquare(ctx, img, targetSize, targetSize, fitMode);
+                const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
+                const pixels = imageData.data;
+                const sourceAlpha = preserveAlpha ? new Uint8Array(targetSize * targetSize) : null;
+                if (sourceAlpha) {
+                    for (let p = 0; p < sourceAlpha.length; p++) sourceAlpha[p] = pixels[p * 4 + 3];
                 }
-                nearestCache[key] = best;
-                return best;
-            }
-
-            const getIndex = (x, y) => (y * width + x) * 4;
-
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const idx = getIndex(x, y);
-                    if (preserveAlpha && pixels[idx + 3] === 0) {
-                        numberString += indexMap[0];
-                        continue;
+                const paletteRgb = optimizeAdaptivePalette(pixels, preserveAlpha);
+                const paletteHex = paletteRgb.map(c => rgbToHex(...c));
+                const indexMap = paletteRgb.map((_, i) => String(i).padStart(3, '0'));
+                const work = new Float32Array(pixels);
+                const width = targetSize, height = targetSize;
+                const codes = new Array(width * height);
+                const sq = (r, g, b, c) => {
+                    const dr = r-c[0], dg = g-c[1], db = b-c[2];
+                    return dr*dr+dg*dg+db*db;
+                };
+                // 僅快取完全相同的 8-bit RGB；抖色產生浮點值時不使用近似快取。
+                const exactCache = new Map();
+                const nearest = (r, g, b) => {
+                    const ri = Math.round(r), gi = Math.round(g), bi = Math.round(b);
+                    const key = (ri << 16) | (gi << 8) | bi;
+                    if (Number.isInteger(r) && Number.isInteger(g) && Number.isInteger(b) && exactCache.has(key)) return exactCache.get(key);
+                    let best = 0, min = Infinity;
+                    for (let k = 0; k < paletteRgb.length; k++) {
+                        const d = sq(r, g, b, paletteRgb[k]);
+                        if (d < min) { min = d; best = k; }
                     }
-                    const oldR = pixels[idx];
-                    const oldG = pixels[idx + 1];
-                    const oldB = pixels[idx + 2];
-
-                    const closestColorIndex = getClosestColorIndex(oldR, oldG, oldB);
-
-                    numberString += indexMap[closestColorIndex];
-                    const newColor = paletteRgb[closestColorIndex];
-                    const errR = (oldR - newColor[0]) * ditherStrength;
-                    const errG = (oldG - newColor[1]) * ditherStrength;
-                    const errB = (oldB - newColor[2]) * ditherStrength;
-
-                    pixels[idx] = newColor[0];
-                    pixels[idx + 1] = newColor[1];
-                    pixels[idx + 2] = newColor[2];
-
-                    const eR = errR * 0.125;
-                    const eG = errG * 0.125;
-                    const eB = errB * 0.125;
-
-                    const addError = (offsetX, offsetY) => {
-                        const nx = x + offsetX;
-                        const ny = y + offsetY;
-                        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                            const i = getIndex(nx, ny);
-                            if (preserveAlpha && pixels[i + 3] === 0) return;
-                            pixels[i] += eR;
-                            pixels[i + 1] += eG;
-                            pixels[i + 2] += eB;
+                    if (Number.isInteger(r) && Number.isInteger(g) && Number.isInteger(b)) exactCache.set(key, best);
+                    return best;
+                };
+                const strength = Math.max(0, Math.min(1, ditherStrength));
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const index = y * width + x, p = index * 4;
+                        if (preserveAlpha && sourceAlpha[index] === 0) {
+                            codes[index] = '000';
+                            continue;
                         }
-                    };
-
-                    addError(1, 0);
-                    addError(2, 0);
-                    addError(-1, 1);
-                    addError(0, 1);
-                    addError(1, 1);
-                    addError(0, 2);
+                        const r = work[p], g = work[p+1], b = work[p+2];
+                        const k = nearest(r, g, b);
+                        codes[index] = indexMap[k];
+                        const c = paletteRgb[k];
+                        pixels[p] = c[0]; pixels[p+1] = c[1]; pixels[p+2] = c[2];
+                        if (!strength) continue;
+                        const er = (r-c[0])*strength/8, eg = (g-c[1])*strength/8, eb = (b-c[2])*strength/8;
+                        for (const [dx, dy] of [[1,0],[2,0],[-1,1],[0,1],[1,1],[0,2]]) {
+                            const nx=x+dx, ny=y+dy;
+                            if (nx<0 || ny<0 || nx>=width || ny>=height) continue;
+                            const qIndex=ny*width+nx, q=qIndex*4;
+                            if (preserveAlpha && sourceAlpha[qIndex]===0) continue;
+                            work[q]+=er; work[q+1]+=eg; work[q+2]+=eb;
+                        }
+                    }
                 }
-            }
-
-            const previewCanvas = document.getElementById('previewCanvas');
-            if (previewCanvas) {
-                const previewCtx = previewCanvas.getContext('2d');
-                previewCanvas.width = targetSize;
-                previewCanvas.height = targetSize;
-                previewCtx.putImageData(imageData, 0, 0);
-            }
-
-            resolve({ numberString, paletteHex, indexMap, alphaString });
-            } catch (error) {
-                reject(error);
-            }
+                const previewCanvas = document.getElementById('previewCanvas');
+                if (previewCanvas) {
+                    const previewCtx = previewCanvas.getContext('2d');
+                    previewCanvas.width = targetSize; previewCanvas.height = targetSize;
+                    previewCtx.putImageData(imageData, 0, 0);
+                }
+                const alphaString = sourceAlpha ? Array.from(sourceAlpha, a => a.toString(16).padStart(2,'0')).join('') : null;
+                resolve({ numberString: codes.join(''), paletteHex, indexMap, alphaString });
+            } catch (error) { reject(error); }
         };
-
-        img.onerror = (error) => {
-            reject(new Error(`圖片載入失敗: ${error.message || '未知錯誤'}`));
-        };
-
+        img.onerror = (error) => reject(new Error(`圖片載入失敗: ${error.message || '未知錯誤'}`));
         img.src = imageSrc;
     });
 }
@@ -754,7 +792,7 @@ async function runConversion(showToast = false) {
                 resultXml = textToBlocksHidden(numberString, adaptive.paletteHex, adaptive.indexMap, size, 3, 3, adaptive.alphaString);
                 const local = buildLocalPalette(numberString, adaptive.paletteHex, adaptive.indexMap, 3, 3);
                 if (outputStats) {
-                    outputStats.textContent = `${size}×${size}｜${(size * size).toLocaleString()} 像素｜模式 B｜${fitMode === 'contain' ? '完整保留比例＋透明補邊' : '拉伸填滿'}｜自適應最多 256 色${preserveAlpha ? '＋原圖透明度' : ''}｜本圖色盤 ${adaptive.paletteHex.length} 色｜實際使用 ${local.colors.length} 色｜data ${local.data.length.toLocaleString()} 字元`;
+                    outputStats.textContent = `${size}×${size}｜${(size * size).toLocaleString()} 像素｜模式 B｜${fitMode === 'contain' ? '完整保留比例＋透明補邊' : '拉伸填滿'}｜智慧 256 色（自動最佳化）${preserveAlpha ? '＋原圖透明度' : ''}｜本圖色盤 ${adaptive.paletteHex.length} 色｜實際使用 ${local.colors.length} 色｜data ${local.data.length.toLocaleString()} 字元`;
                 }
             } else {
                 numberString = await convertImageToNumberString(sourceUrl, hiddenAvailableColorsRgb70, hiddenIndexMap70, ditherStrength, size, null, fitMode, isCurrent);

@@ -551,7 +551,7 @@
                         <summary>顏色漸層平滑度（抖動）<span id="ditherStrengthValue" class="dither-percent">0%</span></summary>
                         <div class="fold-body">
                             <input type="range" id="ditherStrength" min="0" max="100" value="0" aria-label="抖動程度">
-                            <p class="note">0% 顏色分明，適合像素畫；數字越大漸層越平滑，適合照片。100% 是完整的 Floyd-Steinberg 抖動。</p>
+                            <p class="note">0% 不使用誤差擴散，適合保留純色與清晰線條；提高比例會加強 Atkinson 抖色，讓有限色盤模擬更多中間色，但也可能產生雜點。100% 為完整 Atkinson 抖色（向 6 個鄰近像素各擴散 1/8 誤差）。</p>
                         </div>
                     </details>
                 </div>
